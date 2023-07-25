@@ -4,17 +4,9 @@
 using namespace std;
 
 lexer::lexer(std::ifstream* source) {
-	sourceFile = source; //change to buffer
+	sourceFile = source; 
 	lineCount = 1;
 	charCount = 1;
-}
-
-lexer::~lexer() {
-}
-
-void lexer::lexerReset(){
-	sourceFile->clear();
-	sourceFile->seekg(0, ios::beg);
 }
 
 bool lexer::isPunction(char c){
@@ -50,7 +42,7 @@ string lexer::tokenIdentifier(){
 		charCount++;
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
-	}while (!(EOF == nextPeek) && (isalpha(nextPeek) || isdigit(nextPeek) || (95 == nextPeek)));
+	}while (!(EOF == nextPeek) && (isalpha(nextPeek) || (nextPeek == 95) || isdigit(nextPeek)));
 	return tokStr;
 }
 

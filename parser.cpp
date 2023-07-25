@@ -5,8 +5,6 @@ parser::parser(lexer* lexr){
 	nextToken = NULL;
 }
 
-parser::~parser() {
-}
 
 void parser::evaluateProg(){
     parse();

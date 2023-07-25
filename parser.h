@@ -9,10 +9,8 @@ using namespace std;
 
 class parser {
 public:
-
 	parser (lexer*);
     void evaluateProg();
-	virtual ~parser();
 
 private:
     lexer* lex;

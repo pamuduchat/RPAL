@@ -6,6 +6,3 @@ token::token() {
 	lineCount = 0;
 	charCount = 0;
 }
-
-token::~token() {
-}

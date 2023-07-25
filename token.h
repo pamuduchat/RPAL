@@ -22,10 +22,9 @@ class token {
 
 public:
 	token();
-	virtual ~token();
 	int tokType;
 	std::string tokValue;
 	int lineCount, charCount;
 };
 
-#endif /* TOKEN_H_ */
+#endif 

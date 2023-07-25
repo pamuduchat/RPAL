@@ -16,9 +16,7 @@ using namespace std;
 class lexer {
 public:
 	lexer(std::ifstream*);
-	virtual ~lexer();
 	token* getNextToken();
-	void lexerReset();
 
 private:
     ifstream* sourceFile;
