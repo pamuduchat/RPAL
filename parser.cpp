@@ -1,10 +1,3 @@
-/*
- * parser.cpp
- *
- *  Created on: Mar 1, 2016
- *      Author: sachin
- */
-
 #include "parser.h"
 
 parser::parser(lexer* lexr){
@@ -15,48 +8,22 @@ parser::parser(lexer* lexr){
 parser::~parser() {
 }
 
-
-void parser::printAST(){
-	parse();
-	if (!treeStack.empty())
-		treePrettyPrint(treeStack.top(), 0);
-	lex->lexerReset();
-}
-
-void parser::printST(){
-    parse();
-    TreeStandardizer *ts = new TreeStandardizer(treeStack.top());
-    if (!treeStack.empty())
-        treePrettyPrint(treeStack.top(), 0);
-    //evaluateProg();
-    lex->lexerReset();
-}
-
-
 void parser::evaluateProg(){
-    //Evaluation will only happen if the interpreter was called without switches
     parse();
     TreeStandardizer *ts = new TreeStandardizer(treeStack.top());
-    //No need to print
     CSEMachine* cse = new CSEMachine();
     cse->run(treeStack.top());
 }
 
 void parser::parse(){
-	if (PARSERLOGS) printf ("Initiating parsing\n");
-	//spaces and comments are not considered
 	do {
 		nextToken = lex->getNextToken();
 	}while (nextToken->tokType == TOK_DELETE);
 	E();
-	if (!treeStack.empty() && treeStack.size() != 1){
-		printf ("Error: Stack not empty at the end of parsing\n");
+	if ((!treeStack.empty() && treeStack.size() != 1) || (lex->getNextToken()->tokType != TOK_EOF)){
+		printf ("Error");
 		exit(0);
-	} else if (lex->getNextToken()->tokType != TOK_EOF){
-		printf ("Error: Parsing finished input still remaining\n");
-		exit(0);
-	}
-	if (PARSERLOGS) printf ("Parsing Finished. AST Generated\n");
+	} 
 }
 
 bool parser::isKeyword(string val){
@@ -70,20 +37,16 @@ bool parser::isKeyword(string val){
 }
 
 void parser::read(string tokStr){
-    if (PARSERLOGS) printf ("read() args %s\\, match %s\\\n", tokStr.c_str(), nextToken->tokValue.c_str());
     if (!(nextToken->tokValue == tokStr)){
-        printf ("At L:C::%d:%d Expected '%s', received '%s'\n", nextToken->lineCount, nextToken->charCount,
-        tokStr.c_str(), nextToken->tokValue.c_str());
+        printf ("error");
         exit(0);
     }
-    //Spaces and comments are not considered
     do {
         nextToken = lex->getNextToken();
     }while (nextToken->tokType == TOK_DELETE);
 }
 
 void parser::buildTree(string nodeStr, int numChildNodes, int type){
-    if (PARSERLOGS) printf ("buildTree. Current Tree Size = %d, Node to add = %s, numChild = %d\n", (int)treeStack.size(), nodeStr.c_str(), numChildNodes);
     int finalSize = treeStack.size() - numChildNodes + 1;
     treeNode* newNode = new treeNode();
     treeNode* tempNode = new treeNode();
@@ -91,11 +54,9 @@ void parser::buildTree(string nodeStr, int numChildNodes, int type){
     newNode->type = type;
     if (numChildNodes == 0){
         treeStack.push(newNode);
-        if (PARSERLOGS) printf ("New Node added. Stack Size = %d\n", (int)treeStack.size());
         return;
     }
     if (treeStack.empty()){
-        if (PARSERLOGS) printf ("We were asked to pop but the stack is empty\n");
         return;
     } else {
         while ((numChildNodes - 1) > 0){
@@ -110,7 +71,6 @@ void parser::buildTree(string nodeStr, int numChildNodes, int type){
                 }
                 numChildNodes--;
             } else {
-                if (PARSERLOGS) printf ("Stack size is less than numChildNodes. Abort.\n");
                 return;
             }
         }
@@ -119,10 +79,6 @@ void parser::buildTree(string nodeStr, int numChildNodes, int type){
         treeStack.pop();
     }
     treeStack.push(newNode);
-    if (finalSize != treeStack.size()){
-        if (PARSERLOGS) printf ("Something went horribly wrong in build tree function\n");
-    }
-    if (PARSERLOGS) printf ("BuildTree Success. Stack Size = %d\n", (int)treeStack.size());
 }
 
 string parser::to_s(treeNode* node)
