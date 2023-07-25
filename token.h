@@ -1,12 +1,6 @@
-/*
- * token.h
- *
- *  Created on: Mar 1, 2016
- *      Author: sachin
- */
 #include <string>
-#ifndef TOKEN_H_
-#define TOKEN_H_
+#ifndef TOKEN_HEADER
+#define TOKEN_HEADER
 
 enum tokenType{
 	TOK_DEFAULT = 0,

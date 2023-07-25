@@ -1,12 +1,5 @@
-/*
- * parser.h
- *
- *  Created on: Mar 1, 2016
- *      Author: sachin
- */
-
-#ifndef PARSER_H_
-#define PARSER_H_
+#ifndef PARSER_HEADER
+#define PARSER_HEADER
 #include "lexer.h"
 #include <stack>
 #include "TreeStandardizer.h"
@@ -18,8 +11,6 @@ class parser {
 public:
 
 	parser (lexer*);
-	void printAST();
-	void printST();
     void evaluateProg();
 	virtual ~parser();
 
@@ -52,12 +43,10 @@ private:
 
 	void parse();
 	void standardize(treeNode*);
-    void buildTree(string, int); //Tree node name & child nodes num
+    void buildTree(string, int); 
     void buildTree(string, int, int);
-    void treePrettyPrint(treeNode*, int);
     void read(string);
 	bool isKeyword(string);
-	string to_s(treeNode*);
 };
 
-#endif /* PARSER_H_ */
+#endif 
