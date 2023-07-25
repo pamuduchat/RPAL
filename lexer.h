@@ -1,9 +1,3 @@
-/*
- * lexer.h
- *
- *  Created on: Mar 1, 2016
- *      Author: sachin
- */
 
 #ifndef LEXER_H_
 #define LEXER_H_

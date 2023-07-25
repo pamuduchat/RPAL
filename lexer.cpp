@@ -1,9 +1,3 @@
-/*
- * lexer.cpp
- *
- *  Created on: Mar 1, 2016
- *      Author: sachin
- */
 
 #include "lexer.h"
 
