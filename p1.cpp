@@ -8,16 +8,11 @@ using namespace std;
 
 ifstream source;
 
-bool isEvaluateProg = true;
-
 
 void exec() {
 	lexer* rpalLexer = new lexer(&source);
 	parser* rpalParser = new parser(rpalLexer);
-	if (isEvaluateProg){
-	    //sprintf ("Evaluate program\n");
-	    rpalParser->evaluateProg();
-	}
+	rpalParser->evaluateProg();
 }
 
 int main (int argc, char *argv[]){
