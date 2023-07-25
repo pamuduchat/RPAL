@@ -1,9 +1,3 @@
-/*
- * TreeStandardizer.h
- *
- *  Created on: Apr 20, 2016
- *      Author: sachin
- */
 
 #ifndef TREESTANDARDIZER_H_
 #define TREESTANDARDIZER_H_

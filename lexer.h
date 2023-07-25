@@ -1,9 +1,7 @@
 
-#ifndef LEXER_H_
-#define LEXER_H_
+#ifndef LEXER_HEADER
+#define LEXER_HEADER
 using namespace std;
-#define LEXLOGS 0
-#define PARSERLOGS 0
 #define STANDARDIZERLOGS 0
 
 #include <fstream>
@@ -38,4 +36,4 @@ private:
 	bool isKeyword(string);
 };
 
-#endif /* LEXER_H_ */
+#endif 

@@ -372,7 +372,6 @@ void parser::Rn(){
 		else if(TOK_IDENTIFIER == nextToken->tokType){
 			buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
 			read(nextToken->tokValue);
-			if (PARSERLOGS) printf ("next Token = %s\n", nextToken->tokValue.c_str());
 		}
 		else if(TOK_STRING == nextToken->tokType){
 			buildTree(nextToken->tokValue, 0, treeNode::STRING);
