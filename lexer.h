@@ -11,7 +11,6 @@ using namespace std;
 #define LEXLOGS 0
 #define PARSERLOGS 0
 #define STANDARDIZERLOGS 0
-#define MAIN_DEBUG_LOGS 0
 
 #include <fstream>
 #include <string>
