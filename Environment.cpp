@@ -1,19 +1,7 @@
-/*
- * Environment.cpp
- *
- *  Created on: Apr 22, 2016
- *      Author: sachin
- */
-
 #include "Environment.h"
 
 Environment::Environment(int id) {
-    // TODO Auto-generated constructor stub
     this->id = id;
-}
-
-Environment::~Environment() {
-    // TODO Auto-generated destructor stub
 }
 
 void Environment::assignParent(Environment* parent){
@@ -29,8 +17,4 @@ Control* Environment::lookup(string str) {
         return (*it).second;
 }
 
-void Environment::prettyPrint(){
-    map<string, Control *>::iterator it;
-    for (it=symbolTable.begin() ; symbolTable.end() != it; it++ )
-        cout << (*it).first << " => " << (*it).second->toStr() << endl;
-}
+

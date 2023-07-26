@@ -1,12 +1,5 @@
-/*
- * Environment.h
- *
- *  Created on: Apr 22, 2016
- *      Author: sachin
- */
-
-#ifndef RPAL_COMPILER_ENVIRONMENT_H_
-#define RPAL_COMPILER_ENVIRONMENT_H_
+#ifndef RPAL_COMPILER_ENVIRONMENT_HEADER
+#define RPAL_COMPILER_ENVIRONMENT_HEADER
 
 #include <map>
 #include <string>
@@ -17,13 +10,11 @@ using namespace std;
 class Environment {
 public:
     int id;
-    Environment *parent;//this ist primitive
+    Environment *parent;
     void assignParent(Environment* );
     Control* lookup(string);
-    void prettyPrint();
     Environment(int);
-    virtual ~Environment();
     map<string, Control *> symbolTable;
 };
 
-#endif /* RPAL_COMPILER_ENVIRONMENT_H_ */
+#endif 

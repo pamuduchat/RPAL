@@ -6,9 +6,17 @@ using namespace std;
 
 lexer::lexer(std::ifstream* source) {
 	sourceFile = source; 
-	lineCount = 1;
-	charCount = 1;
+	lineCount = 1;// numOfLines
+	charCount = 1;// numOfCharacters
 }
+
+// bool lexer::isPunction(char target){
+// 	char arr[] = {'(', ')', ';', ','};
+// 	int n = 4;
+// 	bool exists = find(arr, arr+n, target);
+//	return exists;
+// }
+
 
 bool lexer::isPunction(char c){
   if('(' == c || ')' == c || ';' == c || ',' == c)
@@ -33,14 +41,18 @@ bool lexer::isOperatorSymbol(char target){
 // 	    else
 // 	        return false;
 // }
+//
 
+// isCommentCharacter
 bool lexer::isCommentChar(char c){
-	if ('\'' == c)  // char is '/'
-		return true;
-	else
+	if ('\'' != c)  						// char is '\'
 		return false;
+	else
+		return true;
 }
-
+//
+// extractTokenIdentifier
+//tokStr tokenString nextLook nextCharacter
 string lexer::tokenIdentifier(){
 	string tokStr= "";
 	char nextPeek;
@@ -50,10 +62,10 @@ string lexer::tokenIdentifier(){
 		charCount++;
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
-	}while (!(EOF == nextPeek) && (isalpha(nextPeek) || (nextPeek == '_') || isdigit(nextPeek)));
+	}while (!(EOF == nextPeek) && ( isalpha(nextPeek) || (nextPeek == '_') || isdigit(nextPeek)));
 	return tokStr;
 }
-
+// extractTokenInteger
 string lexer::tokenInteger(){
 	string tokStr= "";
 	char nextPeek;
@@ -66,7 +78,7 @@ string lexer::tokenInteger(){
 	}while (!(EOF == nextPeek) && isdigit(nextPeek));
 	return tokStr;
 }
-
+//extractTokenStrings
 string lexer::tokenStrings(){
 	string tokStr= "";
 	char nextPeek;
@@ -90,7 +102,7 @@ string lexer::tokenStrings(){
 	tokStr += nextChar;
 	return tokStr;
 }
-
+// extractTokenSpaces
 string lexer::tokenSpaces(){
 	string tokStr= "";
 	char nextPeek;
@@ -108,6 +120,43 @@ string lexer::tokenSpaces(){
 	return tokStr;
 }
 
+
+// string lexer::tokenComment(){
+// 	string tokStr= "";
+// 	char nextPeek;
+// 	char nextChar;
+// 	sourceFile->get(nextChar);
+// 	charCount++;
+// 	tokStr += nextChar;
+// 	nextPeek = sourceFile->peek();
+// 	if (nextPeek == '/'){
+// 		sourceFile->get(nextChar);
+// 		tokStr += nextChar;
+//		sourceFile->get(nextChar);
+//		tokStr += nextChar;
+//		nextPeek = sourceFile->peek();
+//		while (!(EOF == nextPeek) && !(10 == nextPeek || 13 == nextPeek)){
+	//		sourceFile->get(nextChar);
+	//		tokStr += nextChar;
+	//		nextPeek = sourceFile->peek();
+	//  }
+	//  return tokStr;
+//	else{
+//		return tokStr;
+// 		do{
+// 			sourceFile->get(nextChar);
+// 			tokStr += nextChar;
+// 			nextPeek = sourceFile->peek();
+// 		} while (!(EOF == nextPeek) && !(10 == nextPeek || 13 == nextPeek));
+// 		return tokStr;
+// 	} else {
+// 		return tokStr;
+// 	}
+// }
+
+
+
+// extractTokenComment
 string lexer::tokenComment(){
 	string tokStr= "";
 	char nextPeek;
@@ -130,6 +179,28 @@ string lexer::tokenComment(){
 	}
 }
 
+
+
+// extractTokenComment
+// string lexer::tokenOperator(){
+// 	string tokStr= "";
+// 	char nextPeek;
+// 	char nextChar;
+// 	sourceFile->get(nextChar);
+//  charCount++;
+//  tokStr += nextChar;
+//  nextPeek = sourceFile->peek();
+//  while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek)){
+// 		sourceFile->get(nextChar);
+// 		charCount++;
+// 		tokStr += nextChar;
+// 		nextPeek = sourceFile->peek();
+// 	}
+//  return tokStr;
+// }
+
+
+// extractTokenComment
 string lexer::tokenOperator(){
 	string tokStr= "";
 	char nextPeek;
@@ -148,15 +219,17 @@ string lexer::tokenOperator(){
 //a specialized function is called based on the rule that is applicable and
 //subsequent characters are read till the newly read character differs from the selected rule.
 //This marks the end of token, at which point it is passed to the parser.
+// takeNextToken
 token* lexer::getNextToken(){
+	//token
 	token* tok = new token();
-	string tokenizedLex;
-	int nextChar;
-	char readNext;
+	string tokenizedLex; //tokenset
+	int nextChar; // nextItem
+	char readNext; 
 	nextChar = sourceFile->peek();
 	if (isalpha(nextChar)){
 		tokenizedLex = tokenIdentifier();
-        tok->tokType = TOK_IDENTIFIER;
+        tok->tokType = TOK_IDENTIFIER; // toktype = type
 	} else if (isdigit(nextChar)) {
 		tokenizedLex = tokenInteger();
 		tok->tokType = TOK_INTEGER;
@@ -184,7 +257,7 @@ token* lexer::getNextToken(){
 	} else if (EOF == nextChar) {
 		tok->tokType = TOK_EOF;
 	}
-	tok->tokValue = tokenizedLex;
+	tok->tokValue = tokenizedLex;// value
 	tok->charCount = charCount;
 	tok->lineCount = lineCount;
 	return tok;

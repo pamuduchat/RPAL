@@ -1,22 +1,22 @@
 #include "parser.h"
 
 parser::parser(lexer* lexr){
-	this->lex = lexr;
+	this->lex = lexr;//lexer
 	nextToken = NULL;
 }
 
-
+//evaluteProgram
 void parser::evaluateProg(){
-    parse();
-    TreeStandardizer *ts = new TreeStandardizer(treeStack.top());
-    CSEMachine* cse = new CSEMachine();
-    cse->run(treeStack.top());
+    parse();//parseProgram
+    TreeStandardizer *ts = new TreeStandardizer(treeStack.top());// ts = standardizer
+    CSEMachine* cse = new CSEMachine(); // cse= cseMachine
+    cse->run(treeStack.top());// run = execute treeStack = astStack
 }
 
 void parser::parse(){
 	do {
-		nextToken = lex->getNextToken();
-	}while (nextToken->tokType == TOK_DELETE);
+		nextToken = lex->getNextToken(); // lex
+	}while (nextToken->tokType == TOK_DELETE);// toktype = type
 	E();
 	if ((!treeStack.empty() && treeStack.size() != 1) || (lex->getNextToken()->tokType != TOK_EOF)){
 		printf ("Error");
@@ -34,7 +34,7 @@ bool parser::isKeyword(string val){
       return false;
 }
 
-void parser::read(string tokStr){
+void parser::read(string tokStr){ 
     if (!(nextToken->tokValue == tokStr)){
         printf ("error");
         exit(0);
