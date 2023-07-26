@@ -10,20 +10,20 @@ lexer::lexer(std::ifstream* source) {
 	charCount = 1;// numOfCharacters
 }
 
-// bool lexer::isPunction(char target){
-// 	char arr[] = {'(', ')', ';', ','};
-// 	int n = 4;
-// 	bool exists = find(arr, arr+n, target);
-//	return exists;
-// }
-
-
-bool lexer::isPunction(char c){
-  if('(' == c || ')' == c || ';' == c || ',' == c)
-    return true;
-  else
-    return false;
+bool lexer::isPunction(char target){
+	char arr[] = {'(', ')', ';', ','};
+	int n = 4;
+	bool exists = find(arr, arr+n, target)!= arr + n;
+	return exists;
 }
+
+
+// bool lexer::isPunction(char c){
+//   if('(' == c || ')' == c || ';' == c || ',' == c)
+//     return true;
+//   else
+//     return false;
+// }
 
 bool lexer::isOperatorSymbol(char target){
 	char arr[] = {'+', '-', '*', '<', '>', '*', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '"', '`', '?'};
@@ -121,6 +121,35 @@ string lexer::tokenSpaces(){
 }
 
 
+string lexer::tokenComment(){
+	string tokStr= "";
+	char nextPeek;
+	char nextChar;
+	sourceFile->get(nextChar);
+	charCount++;
+	tokStr += nextChar;
+	nextPeek = sourceFile->peek();
+	if (nextPeek == '/'){
+		sourceFile->get(nextChar);
+		tokStr += nextChar;
+		sourceFile->get(nextChar);
+		tokStr += nextChar;
+		nextPeek = sourceFile->peek();
+		while (!(EOF == nextPeek) && !(nextPeek == 10 || nextPeek  == 13)){
+			sourceFile->get(nextChar);
+			tokStr += nextChar;
+			nextPeek = sourceFile->peek();
+	 }
+	 return tokStr;
+	}
+	else{
+		return tokStr;
+		}
+}
+
+
+
+// // extractTokenComment
 // string lexer::tokenComment(){
 // 	string tokStr= "";
 // 	char nextPeek;
@@ -132,17 +161,6 @@ string lexer::tokenSpaces(){
 // 	if (nextPeek == '/'){
 // 		sourceFile->get(nextChar);
 // 		tokStr += nextChar;
-//		sourceFile->get(nextChar);
-//		tokStr += nextChar;
-//		nextPeek = sourceFile->peek();
-//		while (!(EOF == nextPeek) && !(10 == nextPeek || 13 == nextPeek)){
-	//		sourceFile->get(nextChar);
-	//		tokStr += nextChar;
-	//		nextPeek = sourceFile->peek();
-	//  }
-	//  return tokStr;
-//	else{
-//		return tokStr;
 // 		do{
 // 			sourceFile->get(nextChar);
 // 			tokStr += nextChar;
@@ -157,62 +175,37 @@ string lexer::tokenSpaces(){
 
 
 // extractTokenComment
-string lexer::tokenComment(){
-	string tokStr= "";
-	char nextPeek;
-	char nextChar;
-	sourceFile->get(nextChar);
-	charCount++;
-	tokStr += nextChar;
-	nextPeek = sourceFile->peek();
-	if (nextPeek == '/'){
-		sourceFile->get(nextChar);
-		tokStr += nextChar;
-		do{
-			sourceFile->get(nextChar);
-			tokStr += nextChar;
-			nextPeek = sourceFile->peek();
-		} while (!(EOF == nextPeek) && !(10 == nextPeek || 13 == nextPeek));
-		return tokStr;
-	} else {
-		return tokStr;
-	}
-}
-
-
-
-// extractTokenComment
-// string lexer::tokenOperator(){
-// 	string tokStr= "";
-// 	char nextPeek;
-// 	char nextChar;
-// 	sourceFile->get(nextChar);
-//  charCount++;
-//  tokStr += nextChar;
-//  nextPeek = sourceFile->peek();
-//  while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek)){
-// 		sourceFile->get(nextChar);
-// 		charCount++;
-// 		tokStr += nextChar;
-// 		nextPeek = sourceFile->peek();
-// 	}
-//  return tokStr;
-// }
-
-
-// extractTokenComment
 string lexer::tokenOperator(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
-	do{
+	sourceFile->get(nextChar);
+ charCount++;
+ tokStr += nextChar;
+ nextPeek = sourceFile->peek();
+ while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek)){
 		sourceFile->get(nextChar);
 		charCount++;
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
-	} while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek));
-	return tokStr;
+	}
+ return tokStr;
 }
+
+
+// // extractTokenComment
+// string lexer::tokenOperator(){
+// 	string tokStr= "";
+// 	char nextPeek;
+// 	char nextChar;
+// 	do{
+// 		sourceFile->get(nextChar);
+// 		charCount++;
+// 		tokStr += nextChar;
+// 		nextPeek = sourceFile->peek();
+// 	} while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek));
+// 	return tokStr;
+// }
 
 //This function is called by the read method in parser to fetch the new token.
 //As per the rpal lexicon, the first character is used to determine which rule applies,

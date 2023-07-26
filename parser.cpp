@@ -15,7 +15,7 @@ void parser::evaluateProg(){
 
 void parser::parse(){
 	do {
-		nextToken = lex->getNextToken(); // lex
+		nextToken = lex->getNextToken(); // lex =lexAnalyzer getNextToken = takeNextTok
 	}while (nextToken->tokType == TOK_DELETE);// toktype = type
 	E();
 	if ((!treeStack.empty() && treeStack.size() != 1) || (lex->getNextToken()->tokType != TOK_EOF)){
@@ -23,8 +23,8 @@ void parser::parse(){
 		exit(0);
 	} 
 }
-
-bool parser::isKeyword(string val){
+// checkKeyword
+bool parser::isKeyword(string val){ 
     if (val == "in" || val == "where" || val == "." || val == "aug" || val == "and" || val == "or"
 		|| val == "&" || val == "not" || val == "gr" || val == "ge" || val == "ls" || val == "le"
 		|| val == "eq" || val == "ne" || val == "+" || val == "-" || val == "*" || val == "/"
@@ -33,7 +33,7 @@ bool parser::isKeyword(string val){
     else
       return false;
 }
-
+// readToken
 void parser::read(string tokStr){ 
     if (!(nextToken->tokValue == tokStr)){
         printf ("error");
@@ -43,7 +43,7 @@ void parser::read(string tokStr){
         nextToken = lex->getNextToken();
     }while (nextToken->tokType == TOK_DELETE); 
 }
-
+//
 void parser::buildTree(string nodeStr, int numChildNodes, int type){
     int finalSize = treeStack.size() - numChildNodes + 1;
     treeNode* newNode = new treeNode();
