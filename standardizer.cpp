@@ -4,6 +4,7 @@ TreeStandardizer::TreeStandardizer(treeNode* topNode) {
     standardize(topNode);
 }
 
+// Standardize LET node
 void TreeStandardizer::standardizeLET(treeNode* topNode){
     treeNode* p;
     topNode->type = treeNode::GAMMA;
@@ -16,6 +17,7 @@ void TreeStandardizer::standardizeLET(treeNode* topNode){
 
 }
 
+// Standardize WHERE node
 void TreeStandardizer::standardizeWHERE(treeNode* topNode){
     treeNode* p, *x, *e;
     topNode->type = treeNode::GAMMA;
@@ -33,6 +35,7 @@ void TreeStandardizer::standardizeWHERE(treeNode* topNode){
     x->siblingNode = p;
 }
 
+// Standardize WITHIN node
 void TreeStandardizer::standardizeWITHIN(treeNode* topNode){
     treeNode *x1, *x2, *e1;
     topNode->type = treeNode::BINDING;
@@ -52,6 +55,7 @@ void TreeStandardizer::standardizeWITHIN(treeNode* topNode){
 
 }
 
+// Standardize REC node
 void TreeStandardizer::standardizeREC(treeNode* topNode){
     treeNode *x, *e, *tempNode;
     topNode->type = treeNode::BINDING;
@@ -75,6 +79,7 @@ void TreeStandardizer::standardizeREC(treeNode* topNode){
     tempNode->childNode->siblingNode->childNode->siblingNode = e;
 }
 
+// Standardize FCN_FORM node
 void TreeStandardizer::standardizeFCNFORM(treeNode* topNode){
     treeNode *tempNode, *newNode;
     topNode->type = treeNode::BINDING;
@@ -90,6 +95,7 @@ void TreeStandardizer::standardizeFCNFORM(treeNode* topNode){
     }
 }
 
+// Standardize LAMBDA node
 void TreeStandardizer::standardizeLAMBDA(treeNode* topNode){
     treeNode *tempNode, *newNode;
     tempNode = topNode->childNode;
@@ -103,6 +109,7 @@ void TreeStandardizer::standardizeLAMBDA(treeNode* topNode){
     }
 }
 
+// Standardize AND node
 void TreeStandardizer::standardizeAND(treeNode* topNode){
     treeNode* tempNode;
     treeNode* tauNode, *commaNode, **currTauChild, **currCommaChild;
@@ -134,6 +141,7 @@ void TreeStandardizer::standardizeAND(treeNode* topNode){
 
 }
 
+// Standardize AT node
 void TreeStandardizer::standardizeAT(treeNode* topNode){
     treeNode* E1, *N, *E2;
     E1 = topNode->childNode;
@@ -152,6 +160,7 @@ void TreeStandardizer::standardizeAT(treeNode* topNode){
 
 }
 
+// Main standardization function, applies standardization based on node type
 void TreeStandardizer::standardize(treeNode* topNode){
     treeNode *p, *e, *e1, *e2, *x, *x1, *x2, *n, *tempNode;
     string original = topNode->nodeString;
