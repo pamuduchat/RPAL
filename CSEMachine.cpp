@@ -379,7 +379,7 @@ currentEnvironment = newEnvironment;
 
 if (rator->variables.size() == 1) {
     // Single variable case
-    currentEnvironment->symbolTable[rator->variables[0]] = execStack.top();
+    currentEnvironment->symTable[rator->variables[0]] = execStack.top();
     execStack.pop();
 } else {
     // Tuple assignment case
@@ -387,7 +387,7 @@ if (rator->variables.size() == 1) {
     execStack.pop();
     if (temp->type == Control::TUPLE && rator->variables.size() == temp->ctrlTuples.size()) {
         for (int i = 0; i < rator->variables.size(); i++) {
-            currentEnvironment->symbolTable[rator->variables[i]] = temp->ctrlTuples[i];
+            currentEnvironment->symTable[rator->variables[i]] = temp->ctrlTuples[i];
         }
     } else {
         exit(1); // Error: Incompatible tuple assignment
@@ -396,8 +396,8 @@ if (rator->variables.size() == 1) {
 
 environmentStack.push(currentEnvironment);
 // Push a new Control node representing the environment onto the control stack and execStack
-control.push_back(new Control(Control::ENV, currentEnvironment->id, false));
-execStack.push(new Control(Control::ENV, currentEnvironment->id, false));
+control.push_back(new Control(Control::ENV, currentEnvironment->envId, false));
+execStack.push(new Control(Control::ENV, currentEnvironment->envId, false));
 
 // Push the control structures of the rator's index onto the control stack
 for (int i = 0; i < controlStructures->at(rator->index)->ctrlStruct->size(); i++) {
@@ -574,7 +574,7 @@ Environment* CSEMachine::createNewEnvironment(){
             control.pop_back();
             execStack.push(currentControl);
         } else if (currentControl->type == Control::LAMBDA) {
-            currentControl->associatedENV = currentEnvironment->id;
+            currentControl->associatedENV = currentEnvironment->envId;
             control.pop_back();
             execStack.push(currentControl);
         } else if (currentControl->type == Control::GAMMA) {
@@ -615,13 +615,13 @@ Environment* CSEMachine::createNewEnvironment(){
 }
 
 
-void CSEMachine::init(treeNode *root) {
+void CSEMachine::initializaCseMachine(treeNode* rootNode) {
     controlStructures->push_back(rootDeltaControl);
-    flattenTree(root, rootDeltaControl, controlStructures);
+    flattenTree(rootNode, rootDeltaControl, controlStructures);
     control.push_back(new Control(Control::ENV, 0, false));
     execStack.push(new Control(Control::ENV, 0, false));
 
-    int i = 0;
+    size_t i = 0;
     while (i < rootDeltaControl->ctrlStruct->size()) {
         control.push_back(rootDeltaControl->ctrlStruct->at(i));
         i++;
@@ -632,119 +632,130 @@ void CSEMachine::init(treeNode *root) {
     currentEnvironment = environmentStack.top();
 }
 
-
 void CSEMachine::run(treeNode *root){
-    init(root);
+    initializaCseMachine(root);
     execCSE();
     printf ("\n");
 }
 
-void CSEMachine::flattenDeltaThen(treeNode* node, Control *delta,vector<Control *> *controlStructures){
-    Control *deltaThen = new Control(Control::DELTA, controlStructures->size());
-    controlStructures->push_back(deltaThen);
-    delta->ctrlStruct->push_back(new Control(Control::DELTA, controlStructures->size()-1)); 
-    if(node->childNode->siblingNode->type == treeNode::TERNARY){
-        flattenTree(node->childNode->siblingNode, deltaThen, controlStructures);
-    }else{
-        vector<string> *tempvariables = NULL;
-        if(node->childNode->siblingNode->type == treeNode::TAU){
-            treeNode *temp = node->childNode->siblingNode->childNode;
-            tempvariables = new vector<string>;
-            while(temp!= NULL){
-                tempvariables->push_back(temp->nodeString); 
-                temp = temp->siblingNode;
+
+void CSEMachine::flattenDeltaThen(treeNode* deltaThenNode, Control* deltaControl, vector<Control*>* controlStructures) {
+    Control* newDeltaThen = new Control(Control::DELTA, controlStructures->size());
+    controlStructures->push_back(newDeltaThen);
+    deltaControl->ctrlStruct->push_back(new Control(Control::DELTA, controlStructures->size() - 1));
+
+    if (deltaThenNode->childNode->siblingNode->type == treeNode::TERNARY) {
+        flattenTree(deltaThenNode->childNode->siblingNode, newDeltaThen, controlStructures);
+    } else {
+        vector<string>* tempVariables = NULL;
+        if (deltaThenNode->childNode->siblingNode->type == treeNode::TAU) {
+            treeNode* tempNode = deltaThenNode->childNode->siblingNode->childNode;
+            tempVariables = new vector<string>();
+            while (tempNode != NULL) {
+                tempVariables->push_back(tempNode->nodeString);
+                tempNode = tempNode->siblingNode;
             }
         }
-        deltaThen->addControl(node->childNode->siblingNode, node->childNode->siblingNode->type, node->childNode->siblingNode->nodeString, tempvariables, deltaThen, controlStructures->size());
-        if(node->childNode->siblingNode->childNode != NULL)
-            flattenTree(node->childNode->siblingNode->childNode, deltaThen, controlStructures);
+        newDeltaThen->addControl(deltaThenNode->childNode->siblingNode, deltaThenNode->childNode->siblingNode->type, deltaThenNode->childNode->siblingNode->nodeString, tempVariables, newDeltaThen, controlStructures->size());
+        
+        if (deltaThenNode->childNode->siblingNode->childNode != NULL)
+            flattenTree(deltaThenNode->childNode->siblingNode->childNode, newDeltaThen, controlStructures);
     }
 }
 
-void CSEMachine::flattenDeltaElse(treeNode* node, Control *delta,vector<Control *> *controlStructures){
-    Control *deltaElse = new Control(Control::DELTA, controlStructures->size());
-    controlStructures->push_back(deltaElse);
-    delta->ctrlStruct->push_back(new Control(Control::DELTA, controlStructures->size()-1));
 
-    if(node->childNode->siblingNode->siblingNode->type == treeNode::TERNARY){
-        flattenTree(node->childNode->siblingNode->siblingNode,deltaElse, controlStructures);
-    }else{
-        vector<string> *tempvariables = NULL;
-        if(node->childNode->siblingNode->siblingNode->type == treeNode::TAU){
-            treeNode *temp = node->childNode->siblingNode->siblingNode->childNode;
-            tempvariables = new vector<string>;
-            while(temp!= NULL){
-                tempvariables->push_back(temp->nodeString);
-                temp = temp->siblingNode;
+
+void CSEMachine::flattenDeltaElse(treeNode* deltaElseNode, Control* deltaControl, vector<Control*>* controlStructures) {
+    Control* newDeltaElse = new Control(Control::DELTA, controlStructures->size());
+    controlStructures->push_back(newDeltaElse);
+    deltaControl->ctrlStruct->push_back(new Control(Control::DELTA, controlStructures->size() - 1));
+
+    if (deltaElseNode->childNode->siblingNode->siblingNode->type == treeNode::TERNARY) {
+        flattenTree(deltaElseNode->childNode->siblingNode->siblingNode, newDeltaElse, controlStructures);
+    } else {
+        vector<string>* tempVariables = NULL;
+        if (deltaElseNode->childNode->siblingNode->siblingNode->type == treeNode::TAU) {
+            treeNode* tempNode = deltaElseNode->childNode->siblingNode->siblingNode->childNode;
+            tempVariables = new vector<string>();
+            while (tempNode != NULL) {
+                tempVariables->push_back(tempNode->nodeString);
+                tempNode = tempNode->siblingNode;
             }
         }
-        deltaElse->addControl(node->childNode->siblingNode->siblingNode, node->childNode->siblingNode->siblingNode->type, node->childNode->siblingNode->siblingNode->nodeString, tempvariables, deltaElse, controlStructures->size());
-        if(node->childNode->siblingNode->siblingNode->childNode != NULL)
-            flattenTree(node->childNode->siblingNode->siblingNode->childNode,deltaElse, controlStructures);
+        newDeltaElse->addControl(deltaElseNode->childNode->siblingNode->siblingNode, deltaElseNode->childNode->siblingNode->siblingNode->type, deltaElseNode->childNode->siblingNode->siblingNode->nodeString, tempVariables, newDeltaElse, controlStructures->size());
+        
+        if (deltaElseNode->childNode->siblingNode->siblingNode->childNode != NULL)
+            flattenTree(deltaElseNode->childNode->siblingNode->siblingNode->childNode, newDeltaElse, controlStructures);
     }
 }
 
-void CSEMachine::flattenTernary(treeNode* node, Control *delta,vector<Control *> *controlStructures){
-    flattenDeltaThen(node, delta, controlStructures);
 
-    flattenDeltaElse(node, delta, controlStructures);
 
-    Control *beta = new Control(Control::BETA);
-    delta->ctrlStruct->push_back(new Control(Control::BETA, "beta"));
-    delta->addControl(node->childNode, node->childNode->type, node->childNode->nodeString, NULL, NULL, controlStructures->size());
-    if(node->childNode->childNode != NULL)
-        flattenTree(node->childNode->childNode, delta, controlStructures);
+void CSEMachine::flattenTernary(treeNode* ternaryNode, Control* deltaControl, vector<Control*>* controlStructures) {
+    flattenDeltaThen(ternaryNode, deltaControl, controlStructures);
+    flattenDeltaElse(ternaryNode, deltaControl, controlStructures);
+
+    Control* betaControl = new Control(Control::BETA);
+    deltaControl->ctrlStruct->push_back(new Control(Control::BETA, "beta"));
+    deltaControl->addControl(ternaryNode->childNode, ternaryNode->childNode->type, ternaryNode->childNode->nodeString, NULL, NULL, controlStructures->size());
+
+    if (ternaryNode->childNode->childNode != NULL) {
+        flattenTree(ternaryNode->childNode->childNode, deltaControl, controlStructures);
+    }
 }
 
-void CSEMachine::flattenLAMBDA(treeNode* node, Control *delta,vector<Control *> *controlStructures){
-    Control *temp = NULL;
-    vector<string> *variables = NULL;
-    variables = new vector<string>();
-    if(treeNode::IDENTIFIER == node->childNode->type){
-        variables->push_back(node->childNode->nodeString);
-    }else if(treeNode::COMMA == node->childNode->type){
-        treeNode *temp = node->childNode->childNode;
-        while(NULL != temp){
-            variables->push_back(temp->nodeString);
-            temp = temp->siblingNode;
+
+void CSEMachine::flattenLAMBDA(treeNode* lambdaNode, Control* deltaControl, vector<Control*>* controlStructures) {
+    Control* tempControl = NULL;
+    vector<string>* lambdaVariables = new vector<string>();
+
+    if (treeNode::IDENTIFIER == lambdaNode->childNode->type) {
+        lambdaVariables->push_back(lambdaNode->childNode->nodeString);
+    } else if (treeNode::COMMA == lambdaNode->childNode->type) {
+        for (treeNode* tempNode = lambdaNode->childNode->childNode; tempNode != NULL; tempNode = tempNode->siblingNode) {
+            lambdaVariables->push_back(tempNode->nodeString);
         }
     }
-    temp = new Control(Control::DELTA, controlStructures->size());
-    controlStructures->push_back(temp);
-    delta->addControl(node, node->type, node->nodeString, variables, temp, controlStructures->size());
-    flattenTree(node->childNode->siblingNode, temp, controlStructures);
 
-    if(NULL != node->siblingNode)
-        flattenTree(node->siblingNode,delta, controlStructures);
+    tempControl = new Control(Control::DELTA, controlStructures->size());
+    controlStructures->push_back(tempControl);
+    deltaControl->addControl(lambdaNode, lambdaNode->type, lambdaNode->nodeString, lambdaVariables, tempControl, controlStructures->size());
 
+    flattenTree(lambdaNode->childNode->siblingNode, tempControl, controlStructures);
+
+    if (NULL != lambdaNode->siblingNode)
+        flattenTree(lambdaNode->siblingNode, deltaControl, controlStructures);
 }
 
-void CSEMachine::flattenTree(treeNode* node, Control* delta, vector<Control*>* controlStructures) {
-    Control* temp_del_ptr = NULL;
+
+
+void CSEMachine::flattenTree(treeNode* currentNode, Control* deltaControl, vector<Control*>* controlStructures) {
+    Control* tempControlPtr = NULL;
     vector<string>* variables = NULL;
 
-    if (treeNode::LAMBDA == node->type) {
-        flattenLAMBDA(node, delta, controlStructures);
-    } else if (node->type == treeNode::TERNARY) {
-        flattenTernary(node, delta, controlStructures);
+    if (treeNode::LAMBDA == currentNode->type) {
+        flattenLAMBDA(currentNode, deltaControl, controlStructures);
+    } else if (currentNode->type == treeNode::TERNARY) {
+        flattenTernary(currentNode, deltaControl, controlStructures);
     } else {
-        if (node->type == treeNode::TAU) {
+        if (currentNode->type == treeNode::TAU) {
             variables = new vector<string>();
-            treeNode* temp = node->childNode;
-            for (; temp != NULL; temp = temp->siblingNode) {
-                variables->push_back(temp->nodeString);
+            treeNode* tempNode = currentNode->childNode;
+            for (; tempNode != NULL; tempNode = tempNode->siblingNode) {
+                variables->push_back(tempNode->nodeString);
             }
         }
 
-        delta->addControl(node, node->type, node->nodeString, variables, temp_del_ptr, controlStructures->size());
+        deltaControl->addControl(currentNode, currentNode->type, currentNode->nodeString, variables, tempControlPtr, controlStructures->size());
 
-        if (NULL != node->childNode) {
-            flattenTree(node->childNode, delta, controlStructures);
+        if (NULL != currentNode->childNode) {
+            flattenTree(currentNode->childNode, deltaControl, controlStructures);
         }
-        if (NULL != node->siblingNode) {
-            flattenTree(node->siblingNode, delta, controlStructures);
+        if (NULL != currentNode->siblingNode) {
+            flattenTree(currentNode->siblingNode, deltaControl, controlStructures);
         }
     }
 }
+
 
 

@@ -9,12 +9,12 @@ using namespace std;
 
 class Environment {
 public:
-    int id;
+    int envId;
     Environment *parent;
     void assignParent(Environment* );
     Control* lookup(string);
     Environment(int);
-    map<string, Control *> symbolTable;
+    map<string, Control *> symTable;
 };
 
 #endif 
