@@ -1,5 +1,6 @@
 
 #include "lexer.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -16,27 +17,22 @@ bool lexer::isPunction(char c){
     return false;
 }
 
-// bool lexer::isOperatorSymbol(char target){
-// 	char arr[] = {'+', '-', '*', '<', '>', '*', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '"', '`', '?'};
-//    
- 
-//     int n = 19;
- 
-//     bool exists = std::find(arr, arr + n, target) != arr + n;
-
-// 	   return exists;
-
-// }
-
-bool lexer::isOperatorSymbol(char c){
-	 if ('+' == c || '-' == c || '*' == c || '<' == c || '>' == c || '*' == c || '&' == c || '.' == c
-	    || '@' == c|| '/' == c|| ':'== c || '=' == c|| '~' == c|| '|'== c || '$'== c || '!' == c
-	    || '#'== c || '%'== c || '^'== c || '_'== c || '['== c || ']'== c || '{'== c || '}'== c
-	    || '"'== c || '`'== c || '?'== c)
-	        return true;
-	    else
-	        return false;
+bool lexer::isOperatorSymbol(char target){
+	char arr[] = {'+', '-', '*', '<', '>', '*', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '"', '`', '?'};
+    int n = 19;
+    bool exists = find(arr, arr + n, target) != arr + n;
+	   return exists;
 }
+
+// bool lexer::isOperatorSymbol(char c){
+// 	 if ('+' == c || '-' == c || '*' == c || '<' == c || '>' == c || '*' == c || '&' == c || '.' == c
+// 	    || '@' == c|| '/' == c|| ':'== c || '=' == c|| '~' == c|| '|'== c || '$'== c || '!' == c
+// 	    || '#'== c || '%'== c || '^'== c || '_'== c || '['== c || ']'== c || '{'== c || '}'== c
+// 	    || '"'== c || '`'== c || '?'== c)
+// 	        return true;
+// 	    else
+// 	        return false;
+// }
 
 bool lexer::isCommentChar(char c){
 	if ('\'' == c)  // char is '/'

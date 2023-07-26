@@ -1,6 +1,5 @@
-
-#ifndef TREESTANDARDIZER_H_
-#define TREESTANDARDIZER_H_
+#ifndef TREESTANDARDIZER_HEADER
+#define TREESTANDARDIZER_HEADER
 
 #include "lexer.h"
 #include "treeNode.h"
@@ -22,4 +21,4 @@ public:
     TreeStandardizer(treeNode* topNode);
 };
 
-#endif /* TREESTANDARDIZER_H_ */
+#endif 

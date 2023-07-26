@@ -188,8 +188,5 @@ void TreeStandardizer::standardize(treeNode* topNode){
     case treeNode::AT:
         standardizeAT(topNode);
         break;
-    default:
-        if (0) printf ("Nothing to do. TopNode is %s\n", original.c_str());
     }
-    if (0) printf ("Done with node %s\n", original.c_str());
 }
