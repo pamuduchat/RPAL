@@ -1,9 +1,9 @@
 #ifndef PARSER_HEADER
 #define PARSER_HEADER
+#include "standardizer.h"
 #include "lexicalanalyzer.h"
 #include <stack>
-#include "TreeStandardizer.h"
-#include "CSEMachine.h"
+#include "cse.h"
 
 using namespace std;
 

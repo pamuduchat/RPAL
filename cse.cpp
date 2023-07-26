@@ -1,4 +1,4 @@
-#include "CSEMachine.h"
+#include "cse.h"
 
 CSEMachine::CSEMachine(treeNode* topNode) {
     this->top = topNode;

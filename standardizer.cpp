@@ -1,4 +1,4 @@
-#include "TreeStandardizer.h"
+#include "standardizer.h"
 
 TreeStandardizer::TreeStandardizer(treeNode* topNode) {
     standardize(topNode);

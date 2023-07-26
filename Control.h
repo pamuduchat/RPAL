@@ -1,5 +1,5 @@
 #include "lexicalanalyzer.h"
-#include "treeNode.h"
+#include "treenode.h"
 
 #include <string>
 #include <stdio.h>

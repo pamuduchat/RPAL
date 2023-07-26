@@ -2,7 +2,7 @@
 #define TREESTANDARDIZER_HEADER
 
 #include "lexicalanalyzer.h"
-#include "treeNode.h"
+#include "treenode.h"
 
 using namespace std;
 
