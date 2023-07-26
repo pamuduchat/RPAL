@@ -29,14 +29,12 @@ static vector <string> inbuiltFunctions = {
 class CSEMachine {
     void flattenDeltaThen(treeNode*, Control *,vector<Control *> *);
     void flattenDeltaElse(treeNode*, Control *,vector<Control *> *);
-    void flattenLAMBDA(treeNode*, Control *,vector<Control *> *);
-    void flattenTernary(treeNode*, Control *,vector<Control *> *);
-    void flattenTree(treeNode*, Control *,vector<Control *> *);
+    void flatternLambdaExpression(treeNode*, Control *,vector<Control *> *);
+    void flatternTernaryExpression(treeNode*, Control *,vector<Control *> *);
+    void flatternControlStructure(treeNode*, Control *,vector<Control *> *);
     void initializaCseMachine(treeNode*);
-    void deltaPrint();
-    void applyBinaryOperator(int);
-    void applyOperator(Control*);
-    void printCS();
+    void executeBinaryOperation(int);
+    void executeOperator(Control*);
     bool checkInbuilt(string);
     void escapePrintStr(string);
     void rule11(Control*, Control*, Control*, Environment*, int);
