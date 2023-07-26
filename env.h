@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string>
-#include "Control.h"
+#include "control.h"
 
 using namespace std;
 

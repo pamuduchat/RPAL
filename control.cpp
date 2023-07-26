@@ -1,4 +1,4 @@
-#include "Control.h"
+#include "control.h"
 string Control::toStr(){
     string str ;
     switch(type){
