@@ -9,7 +9,7 @@
 
 class Control{
 public:
-  void addCtrl(treeNode* node, int , string,  vector<string> *, Control*, int);
+  void addControl(treeNode* node, int , string,  vector<string> *, Control*, int);
   void pretty_print();
   enum Type{
     ENV = 1 ,

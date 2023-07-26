@@ -4,5 +4,5 @@ let Ispalindrome number =
         rec FormReverse (num, revNum) =
             num eq 0 -> (number eq revNum -> 'Palindrome' | 'Not a palindrome') | FormReverse(num/10, (revNum*10 + num-(num/10)*10)) 
 in 
-Print(Ispalindrome 123454321)
+Print(Ispalindrome 12321)
 // This is a comment

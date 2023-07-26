@@ -1,73 +1,83 @@
 #include "parser.h"
 
 parser::parser(lexer* lexr){
-	this->lex = lexr;//lexer
+	this->lexAnalyzer = lexr;//lexer
 	nextToken = NULL;
 }
 
-//evaluteProgram
-void parser::evaluateProg(){
-    parse();//parseProgram
-    TreeStandardizer *ts = new TreeStandardizer(treeStack.top());// ts = standardizer
-    CSEMachine* cse = new CSEMachine(); // cse= cseMachine
-    cse->run(treeStack.top());// run = execute treeStack = astStack
+void parser::evaluateProgram(){
+    parse();
+    TreeStandardizer *standadizer = new TreeStandardizer(treeStack.top());
+    CSEMachine* cseMachine = new CSEMachine();
+    cseMachine->run(treeStack.top());
 }
 
 void parser::parse(){
 	do {
-		nextToken = lex->getNextToken(); // lex =lexAnalyzer getNextToken = takeNextTok
-	}while (nextToken->tokType == TOK_DELETE);// toktype = type
+		nextToken = lexAnalyzer->takeNextToken();  
+	}while (nextToken->type == TOK_DELETE);
 	E();
-	if ((!treeStack.empty() && treeStack.size() != 1) || (lex->getNextToken()->tokType != TOK_EOF)){
+	if ((!treeStack.empty() && treeStack.size() != 1) || (lexAnalyzer->takeNextToken()->type != TOK_EOF)){
 		printf ("Error");
 		exit(0);
 	} 
 }
+
 // checkKeyword
-bool parser::isKeyword(string val){ 
-    if (val == "in" || val == "where" || val == "." || val == "aug" || val == "and" || val == "or"
-		|| val == "&" || val == "not" || val == "gr" || val == "ge" || val == "ls" || val == "le"
-		|| val == "eq" || val == "ne" || val == "+" || val == "-" || val == "*" || val == "/"
-		|| val == "**" || val == "@" || val == "within" || val == "rec" || val == "let" || val == "fn")
-    return true;
-    else
-      return false;
+bool parser::isKeywordSymbol(string val) {
+    // Array to store the keyword symbols
+    const string keywords[] = {
+        "in", "where", ".", "aug", "and", "or",
+        "&", "not", "gr", "ge", "ls", "le",
+        "eq", "ne", "+", "-", "*", "/",
+        "**", "@", "within", "rec", "let", "fn"
+    };
+
+    for (const string& keyword : keywords) {
+        if (val == keyword) {
+            return true;
+        }
+    }
+
+    // If the value does not match any keyword, return false
+    return false;
 }
+
 // readToken
-void parser::read(string tokStr){ 
-    if (!(nextToken->tokValue == tokStr)){
+void parser::readToken(string tokStr){ 
+    if (!(nextToken->value == tokStr)){
         printf ("error");
         exit(0);
     }
     do {
-        nextToken = lex->getNextToken();
-    }while (nextToken->tokType == TOK_DELETE); 
+        nextToken = lexAnalyzer->takeNextToken();
+    }while (nextToken->type == TOK_DELETE); 
 }
-//
-void parser::buildTree(string nodeStr, int numChildNodes, int type){
-    int finalSize = treeStack.size() - numChildNodes + 1;
+
+//buildAST
+void parser::buildAST(string nodeStr, int childNodeCount, int type){
+    int finalSize = treeStack.size() - childNodeCount + 1;
     treeNode* newNode = new treeNode();
     treeNode* tempNode = new treeNode();
     newNode->nodeString = nodeStr;
     newNode->type = type;
-    if (numChildNodes == 0){
+    if (childNodeCount == 0){
         treeStack.push(newNode);
         return;
     }
     if (treeStack.empty()){
         return;
     } else {
-        while ((numChildNodes - 1) > 0){
+        while ((childNodeCount - 1) > 0){
             if (!treeStack.empty()){
                 tempNode = treeStack.top();
                 treeStack.pop();
                 if (treeStack.size() != 0){
                     treeStack.top()->siblingNode = tempNode;
-                } else if (treeStack.size() == 0) { //Stack cannot be empty here. We have one more element to pop before we can build/push the requested tree
-                    printf ("Parse Error: Empty Stack\n");
+                } else if (treeStack.size() == 0) {
                     exit(0);
                 }
-                numChildNodes--;
+                childNodeCount--;
             } else {
                 return;
             }
@@ -85,23 +95,25 @@ void parser::buildTree(string nodeStr, int numChildNodes, int type){
          ->  Ew;
 */
 void parser::E(){
-	if (nextToken->tokValue == "let")
+	//tokenValue
+	if (nextToken->value == "let")
 	{
-		read("let");
+		readToken("let");
 		D();
-		read ("in");
+		readToken ("in");
 		E();
-		buildTree("let", 2, treeNode::LET);
-	} else if (nextToken->tokValue == "fn"){
-		read("fn");
+		buildAST("let", 2, treeNode::LET);
+
+	} else if (nextToken->value == "fn"){
+		readToken("fn");
 		int n = 0;
 		do {
 			Vb();
 			n++;
-		}while(nextToken->tokValue == "(" || nextToken->tokType == TOK_IDENTIFIER);
-		read(".");
+		}while(nextToken->value == "(" || nextToken->type == TOK_IDENTIFIER);
+		readToken(".");
 		E();
-		buildTree("lambda", n+1, treeNode::LAMBDA);
+		buildAST("lambda", n+1, treeNode::LAMBDA);
 	} else {
 		Ew();
 	}
@@ -111,11 +123,11 @@ void parser::E(){
         -> T;*/
  void parser::Ew(){
  	T();
- 	if (nextToken->tokValue == "where")
+ 	if (nextToken->value == "where")
  	{
- 		read("where");
+ 		readToken("where");
  	 	Dr();
- 	 	buildTree("where",2, treeNode::WHERE);
+ 	 	buildAST("where",2, treeNode::WHERE);
  	}
  }
 
@@ -125,13 +137,13 @@ void parser::E(){
  void parser::T(){
 	 int n = 0;
 	 Ta();
-	 if (nextToken->tokValue == ","){
+	 if (nextToken->value == ","){
 		 do {
-			 read(",");
+			 readToken(",");
 			 Ta();
 			 n++;
-		 }while (nextToken->tokValue == ",");
-		 buildTree("tau", n+1, treeNode::TAU);
+		 }while (nextToken->value == ",");
+		 buildAST("tau", n+1, treeNode::TAU);
 	 }
  }
 
@@ -140,10 +152,10 @@ void parser::E(){
 */
  void parser::Ta(){
 	 Tc();
-	 while (nextToken->tokValue == "aug"){
-		 read("aug");
+	 while (nextToken->value == "aug"){
+		 readToken("aug");
 		 Tc();
-		 buildTree("aug", 2, treeNode::AUG);
+		 buildAST("aug", 2, treeNode::AUG);
 	 }
  }
 
@@ -152,12 +164,12 @@ void parser::E(){
   */
  void parser::Tc(){
 	 B();
-	 if (nextToken->tokValue == "->"){
-		 read("->");
+	 if (nextToken->value == "->"){
+		 readToken("->");
 		 Tc();
-		 read("|");
+		 readToken("|");
 		 Tc();
-		 buildTree("->", 3, treeNode::TERNARY);
+		 buildAST("->", 3, treeNode::TERNARY);
 	 }
  }
 
@@ -166,10 +178,10 @@ void parser::E(){
 */
 void parser::B(){
 	Bt();
-	while (nextToken->tokValue == "or"){
-		read ("or");
+	while (nextToken->value == "or"){
+		readToken ("or");
 		Bt();
-		buildTree("or", 2, treeNode::OR);
+		buildAST("or", 2, treeNode::OR);
 	}
 }
 
@@ -178,10 +190,10 @@ void parser::B(){
 */
 void parser::Bt(){
 	Bs();
-	while (nextToken->tokValue == "&"){
-		read("&");
+	while (nextToken->value == "&"){
+		readToken("&");
 		Bs();
-		buildTree("&", 2, treeNode::AND_LOGICAL);
+		buildAST("&", 2, treeNode::AND_LOGICAL);
 	}
 }
 
@@ -189,10 +201,10 @@ void parser::Bt(){
         -> Bp ;
 */
 void parser::Bs(){
-	if (nextToken->tokValue == "not"){
-		read ("not");
+	if (nextToken->value == "not"){
+		readToken ("not");
 		Bp();
-		buildTree("not", 1, treeNode::NOT);
+		buildAST("not", 1, treeNode::NOT);
 	}else {
 		Bp();
 	}
@@ -208,42 +220,42 @@ void parser::Bs(){
 */
 void parser::Bp(){
 	A();
-	if (nextToken->tokValue == "gr" || nextToken->tokValue == ">"){
-		if (nextToken->tokValue == "gr")
-			read("gr");
-		else if (nextToken->tokValue == ">")
-			read(">");
+	if (nextToken->value == "gr" || nextToken->value == ">"){
+		if (nextToken->value == "gr")
+			readToken("gr");
+		else if (nextToken->value == ">")
+			readToken(">");
 		A();
-		buildTree("gr", 2, treeNode::GR);
-	}else if (nextToken->tokValue == "ge" || nextToken->tokValue == ">="){
-		if (nextToken->tokValue == "ge")
-			read("ge");
-		else if (nextToken->tokValue == ">=")
-			read(">=");
+		buildAST("gr", 2, treeNode::GR);
+	}else if (nextToken->value == "ge" || nextToken->value == ">="){
+		if (nextToken->value == "ge")
+			readToken("ge");
+		else if (nextToken->value == ">=")
+			readToken(">=");
 		A();
-		buildTree("ge", 2, treeNode::GE);
-	}else if (nextToken->tokValue == "ls" || nextToken->tokValue == "<"){
-		if (nextToken->tokValue == "ls")
-			read("ls");
-		else if (nextToken->tokValue == "<")
-			read("<");
+		buildAST("ge", 2, treeNode::GE);
+	}else if (nextToken->value == "ls" || nextToken->value == "<"){
+		if (nextToken->value == "ls")
+			readToken("ls");
+		else if (nextToken->value == "<")
+			readToken("<");
 		A();
-		buildTree("ls", 2, treeNode::LS);
-	}else if (nextToken->tokValue == "le" || nextToken->tokValue == "<="){
-		if (nextToken->tokValue == "le")
-			read("le");
-		else if (nextToken->tokValue == "<=")
-			read("<=");
+		buildAST("ls", 2, treeNode::LS);
+	}else if (nextToken->value == "le" || nextToken->value == "<="){
+		if (nextToken->value == "le")
+			readToken("le");
+		else if (nextToken->value == "<=")
+			readToken("<=");
 		A();
-		buildTree("le", 2, treeNode::LE);
-	}else if (nextToken->tokValue == "eq"){
-		read("eq");
+		buildAST("le", 2, treeNode::LE);
+	}else if (nextToken->value == "eq"){
+		readToken("eq");
 		A();
-		buildTree("eq", 2, treeNode::EQ);
-	}else if (nextToken->tokValue == "ne"){
-		read("ne");
+		buildAST("eq", 2, treeNode::EQ);
+	}else if (nextToken->value == "ne"){
+		readToken("ne");
 		A();
-		buildTree("ne", 2, treeNode::NE);
+		buildAST("ne", 2, treeNode::NE);
 	}
 }
 
@@ -255,46 +267,47 @@ void parser::Bp(){
 */
 void parser::A(){
 	string treeStr;
-	if (nextToken->tokValue == "+"){
-		read("+");
+	if (nextToken->value == "+"){
+		readToken("+");
 		At();
-	} else if (nextToken->tokValue == "-"){
-		read("-");
+	} else if (nextToken->value == "-"){
+		readToken("-");
 		At();
-		buildTree ("neg", 1, treeNode::NEG);
+		buildAST ("neg", 1, treeNode::NEG);
 	} else {
 		At();
 	}
-	while (nextToken->tokValue == "+" || nextToken->tokValue == "-"){
-		if (nextToken->tokValue == "+"){
-			read("+");
+	while (nextToken->value == "+" || nextToken->value == "-"){
+		if (nextToken->value == "+"){
+			readToken("+");
 			treeStr = "+";
 		} else {
-			read("-");
+			readToken("-");
 			treeStr = "-";
 		}
 		At();
-		buildTree(treeStr, 2, treeStr == "+" ? treeNode::ADD: treeNode::SUBTRACT);
+		buildAST(treeStr, 2, treeStr == "+" ? treeNode::ADD: treeNode::SUBTRACT);
 	}
 }
 
-/* At   -> At ’*’ Af                               => ’*’
+/* 
+	At   -> At ’*’ Af                               => ’*’
         -> At ’/’ Af                               => ’/’
         -> Af ;
 */
 void parser::At(){
 	string treeStr;
 	Af();
-	while(nextToken->tokValue == "*" || nextToken->tokValue == "/"){
-		if (nextToken->tokValue == "*"){
-			read("*");
+	while(nextToken->value == "*" || nextToken->value == "/"){
+		if (nextToken->value == "*"){
+			readToken("*");
 			treeStr = "*";
 		} else {
-			read("/");
+			readToken("/");
 			treeStr = "/";
 		}
 		Af();
-		buildTree(treeStr, 2, treeStr == "*" ? treeNode::MULTIPLY: treeNode::DIVIDE);
+		buildAST(treeStr, 2, treeStr == "*" ? treeNode::MULTIPLY: treeNode::DIVIDE);
 	}
 }
 
@@ -303,10 +316,10 @@ void parser::At(){
 */
 void parser::Af(){
 	Ap();
-	if (nextToken->tokValue == "**"){
-		read("**");
+	if (nextToken->value == "**"){
+		readToken("**");
 		Af();
-		buildTree("**", 2, treeNode::EXPONENTIAL);
+		buildAST("**", 2, treeNode::EXPONENTIAL);
 	}
 }
 
@@ -315,12 +328,12 @@ void parser::Af(){
 */
 void parser::Ap(){
 	R();
-	while (nextToken->tokValue == "@"){
-		read("@");
-		buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
-		read(nextToken->tokValue);
+	while (nextToken->value == "@"){
+		readToken("@");
+		buildAST(nextToken->value, 0, treeNode::IDENTIFIER);
+		readToken(nextToken->value);
 		R();
-		buildTree("@", 3, treeNode::AT);
+		buildAST("@", 3, treeNode::AT);
 	}
 }
 
@@ -329,11 +342,11 @@ void parser::Ap(){
 */
 void parser::R(){
 	Rn();
-	while ( (TOK_IDENTIFIER == nextToken->tokType  || TOK_INTEGER == nextToken->tokType|| TOK_STRING == nextToken->tokType
-			||"(" == nextToken->tokValue || "false" == nextToken->tokValue
-			|| "true" == nextToken->tokValue || "nil" == nextToken->tokValue || "dummy" == nextToken->tokValue) && !isKeyword(nextToken->tokValue)){
+	while ( (TOK_IDENTIFIER == nextToken->type  || TOK_INTEGER == nextToken->type|| TOK_STRING == nextToken->type
+			||"(" == nextToken->value || "false" == nextToken->value
+			|| "true" == nextToken->value || "nil" == nextToken->value || "dummy" == nextToken->value) && !isKeywordSymbol(nextToken->value)){
 		Rn();
-		buildTree("gamma", 2, treeNode::GAMMA);
+		buildAST("gamma", 2, treeNode::GAMMA);
 	}
 }
 
@@ -347,39 +360,39 @@ void parser::R(){
         -> ’dummy’                                 => ’dummy’ ;
 */
 void parser::Rn(){
-	if("(" == nextToken->tokValue){
-		read("(");
+	if("(" == nextToken->value){
+		readToken("(");
 		E();
-		read(")");
+		readToken(")");
 	}
-	else if(TOK_IDENTIFIER == nextToken->tokType || TOK_INTEGER == nextToken->tokType || TOK_STRING == nextToken->tokType){
-		if("true" == nextToken->tokValue){
-			read("true");
-			buildTree("<true>", 0, treeNode::TRUE);
+	else if(TOK_IDENTIFIER == nextToken->type || TOK_INTEGER == nextToken->type || TOK_STRING == nextToken->type){
+		if("true" == nextToken->value){
+			readToken("true");
+			buildAST("<true>", 0, treeNode::TRUE);
 		}
-		else if("false" == nextToken->tokValue){
-			read("false");
-			buildTree("<false>", 0, treeNode::FALSE);
+		else if("false" == nextToken->value){
+			readToken("false");
+			buildAST("<false>", 0, treeNode::FALSE);
 		}
-		else if("nil" == nextToken->tokValue){
-			read("nil");
-			buildTree("<nil>", 0, treeNode::NIL);
+		else if("nil" == nextToken->value){
+			readToken("nil");
+			buildAST("<nil>", 0, treeNode::NIL);
 		}
-		else if("dummy" == nextToken->tokValue){
-			read("dummy");
-			buildTree("<dummy>",0, treeNode::DUMMY);
+		else if("dummy" == nextToken->value){
+			readToken("dummy");
+			buildAST("<dummy>",0, treeNode::DUMMY);
 		}
-		else if(TOK_IDENTIFIER == nextToken->tokType){
-			buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
-			read(nextToken->tokValue);
+		else if(TOK_IDENTIFIER == nextToken->type){
+			buildAST(nextToken->value, 0, treeNode::IDENTIFIER);
+			readToken(nextToken->value);
 		}
-		else if(TOK_STRING == nextToken->tokType){
-			buildTree(nextToken->tokValue, 0, treeNode::STRING);
-			read(nextToken->tokValue);
+		else if(TOK_STRING == nextToken->type){
+			buildAST(nextToken->value, 0, treeNode::STRING);
+			readToken(nextToken->value);
 		}
-		else if(TOK_INTEGER == nextToken->tokType){
-			buildTree(nextToken->tokValue, 0, treeNode::INTEGER);
-			read(nextToken->tokValue);
+		else if(TOK_INTEGER == nextToken->type){
+			buildAST(nextToken->value, 0, treeNode::INTEGER);
+			readToken(nextToken->value);
 		}
 	}
 }
@@ -389,10 +402,10 @@ void parser::Rn(){
   */
 void parser::D(){
 	Da();
-	if (nextToken->tokValue == "within"){
-		read("within");
+	if (nextToken->value == "within"){
+		readToken("within");
 		D();
-		buildTree("within", 2, treeNode::WITHIN);
+		buildAST("within", 2, treeNode::WITHIN);
 	}
 }
 /*     Da   -> Dr ( ’and’ Dr )+                        => ’and’
@@ -401,23 +414,23 @@ void parser::D(){
 void parser::Da(){
 	int n = 0;
 	Dr();
-	while (nextToken->tokValue == "and"){
-		read("and");
+	while (nextToken->value == "and"){
+		readToken("and");
 		Dr();
 		n++;
 	}
 	if (n >0)
-		buildTree("and", n+1, treeNode::AND);
+		buildAST("and", n+1, treeNode::AND);
 }
 
 /*      Dr   -> ’rec’ Db                                => ’rec’
              -> Db ;
 */
 void parser::Dr(){
-	if (nextToken->tokValue == "rec"){
-		read("rec");
+	if (nextToken->value == "rec"){
+		readToken("rec");
 		Db();
-		buildTree("rec", 1, treeNode::REC);
+		buildAST("rec", 1, treeNode::REC);
 	} else {
 		Db();
 	}
@@ -428,27 +441,27 @@ void parser::Dr(){
         -> ’(’ D ’)’ ;
   */
 void parser::Db(){
-	if (nextToken->tokValue == "("){
-		read("(");
+	if (nextToken->value == "("){
+		readToken("(");
 		D();
-		read(")");
-	} else if (nextToken->tokType == TOK_IDENTIFIER){
-		buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
-		read(nextToken->tokValue);
-		if (nextToken->tokValue == "," || nextToken->tokValue == "="){
+		readToken(")");
+	} else if (nextToken->type == TOK_IDENTIFIER){
+		buildAST(nextToken->value, 0, treeNode::IDENTIFIER);
+		readToken(nextToken->value);
+		if (nextToken->value == "," || nextToken->value == "="){
 			Vl();
-			read("=");
+			readToken("=");
 			E();
-			buildTree ("=", 2, treeNode::BINDING);
+			buildAST ("=", 2, treeNode::BINDING);
 		} else {
 			int n = 0;
 			do {
 				Vb();
 				n++;
-			}while (nextToken->tokValue == "(" || nextToken->tokType == TOK_IDENTIFIER);
-			read("=");
+			}while (nextToken->value == "(" || nextToken->type == TOK_IDENTIFIER);
+			readToken("=");
 			E();
-			buildTree("function_form", n+2, treeNode::FCN_FORM); 
+			buildAST("function_form", n+2, treeNode::FCN_FORM); 
 		}
 	}
 }
@@ -458,19 +471,19 @@ void parser::Db(){
            -> ’(’ ’)’                                 => ’()’;
 */
 void parser::Vb(){
-	if(nextToken->tokType == TOK_IDENTIFIER){
-		buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
-		read(nextToken->tokValue);
-	}else if (nextToken->tokValue == "("){
-		read("(");
-		if (nextToken->tokValue == ")"){
-			read(")");
-			buildTree("()", 0, treeNode::PARANTHESES);
-		} else if (nextToken->tokType == TOK_IDENTIFIER){
-			buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
-			read(nextToken->tokValue);
+	if(nextToken->type == TOK_IDENTIFIER){
+		buildAST(nextToken->value, 0, treeNode::IDENTIFIER);
+		readToken(nextToken->value);
+	}else if (nextToken->value == "("){
+		readToken("(");
+		if (nextToken->value == ")"){
+			readToken(")");
+			buildAST("()", 0, treeNode::PARANTHESES);
+		} else if (nextToken->type == TOK_IDENTIFIER){
+			buildAST(nextToken->value, 0, treeNode::IDENTIFIER);
+			readToken(nextToken->value);
 			Vl();
-			read(")");
+			readToken(")");
 		}
 	}
 }
@@ -478,16 +491,16 @@ void parser::Vb(){
 //    Vl   -> ’<IDENTIFIER>’ list ’,’                 => ’,’?;
 void parser::Vl(){
 	int n = 0;
-	while (nextToken->tokValue == ","){
-		read(",");
-		if (nextToken->tokType == TOK_IDENTIFIER){
-			buildTree(nextToken->tokValue, 0, treeNode::IDENTIFIER);
-			read(nextToken->tokValue);
+	while (nextToken->value == ","){
+		readToken(",");
+		if (nextToken->type == TOK_IDENTIFIER){
+			buildAST(nextToken->value, 0, treeNode::IDENTIFIER);
+			readToken(nextToken->value);
 			n++;
 		} else {
 			printf ("ERROR In Vl()\n");
 		}
 	}
 	if (n > 0)
-		buildTree(",", n+1, treeNode::COMMA);
+		buildAST(",", n+1, treeNode::COMMA);
 }

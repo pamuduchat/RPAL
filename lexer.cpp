@@ -4,129 +4,139 @@
 
 using namespace std;
 
+// Constructor for the lexer class
 lexer::lexer(std::ifstream* source) {
 	sourceFile = source; 
-	lineCount = 1;// numOfLines
-	charCount = 1;// numOfCharacters
+	numberOfLines = 1;
+	numOfCharacters = 1;
 }
 
-bool lexer::isPunction(char target){
+// Function to check if a character is a punctuation symbol
+bool lexer::isPunctuation(char target){
 	char arr[] = {'(', ')', ';', ','};
 	int n = 4;
 	bool exists = find(arr, arr+n, target)!= arr + n;
 	return exists;
 }
 
-
-// bool lexer::isPunction(char c){
-//   if('(' == c || ')' == c || ';' == c || ',' == c)
-//     return true;
-//   else
-//     return false;
-// }
-
-bool lexer::isOperatorSymbol(char target){
+// Function to check if a character is an operator symbol
+bool lexer::isOperator(char target){
 	char arr[] = {'+', '-', '*', '<', '>', '*', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '"', '`', '?'};
     int n = 19;
     bool exists = find(arr, arr + n, target) != arr + n;
 	   return exists;
 }
 
-// bool lexer::isOperatorSymbol(char c){
-// 	 if ('+' == c || '-' == c || '*' == c || '<' == c || '>' == c || '*' == c || '&' == c || '.' == c
-// 	    || '@' == c|| '/' == c|| ':'== c || '=' == c|| '~' == c|| '|'== c || '$'== c || '!' == c
-// 	    || '#'== c || '%'== c || '^'== c || '_'== c || '['== c || ']'== c || '{'== c || '}'== c
-// 	    || '"'== c || '`'== c || '?'== c)
-// 	        return true;
-// 	    else
-// 	        return false;
-// }
-//
-
-// isCommentCharacter
-bool lexer::isCommentChar(char c){
-	if ('\'' != c)  						// char is '\'
-		return false;
-	else
-		return true;
+// Function to check if a character is not a comment symbol (i.e., not a single quote)
+bool lexer::isCommentSymbol(char c) {
+    return ('\'' != c);
 }
-//
-// extractTokenIdentifier
-//tokStr tokenString nextLook nextCharacter
+
+// Function to extract an identifier token
 string lexer::tokenIdentifier(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
-	do {
+	sourceFile->get(nextChar);
+	numOfCharacters++;
+	tokStr += nextChar;
+	nextPeek = sourceFile->peek();
+	while (!(EOF == nextPeek) && ( isalpha(nextPeek) || (nextPeek == '_') || isdigit(nextPeek))){
 		sourceFile->get(nextChar);
-		charCount++;
+		numOfCharacters++;
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
-	}while (!(EOF == nextPeek) && ( isalpha(nextPeek) || (nextPeek == '_') || isdigit(nextPeek)));
+	}
 	return tokStr;
 }
-// extractTokenInteger
-string lexer::tokenInteger(){
+
+// Function to extract an integer token
+string lexer::extractTokenInteger(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
-	do {
+	sourceFile->get(nextChar);
+	numOfCharacters++;
+	tokStr += nextChar;
+	nextPeek = sourceFile->peek();
+	while (!(EOF == nextPeek) && isdigit(nextPeek)){
 		sourceFile->get(nextChar);
-		charCount++;
+		numOfCharacters++;
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
-	}while (!(EOF == nextPeek) && isdigit(nextPeek));
+	}
 	return tokStr;
 }
-//extractTokenStrings
-string lexer::tokenStrings(){
+
+// Function to extract a string token (enclosed in single quotes)
+string lexer::extractTokenStrings(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
-	do{
-		sourceFile->get(nextChar);
-		charCount++;
-		tokStr += nextChar;
-		nextPeek = sourceFile->peek();
-		if (nextChar == '\\'){
-		    if ((nextPeek == 't' || nextPeek == 'n' || nextPeek == '\\' || nextPeek == '\''))
-		    {
-		        continue; //Valid escape sequence
-		    } else {
+	sourceFile->get(nextChar);
+	numOfCharacters++;
+	tokStr += nextChar;
+	nextPeek = sourceFile->peek();
+	if (nextChar == '\\'){
+		if (!(nextPeek == 't' || nextPeek == 'n' || nextPeek == '\\' || nextPeek == '\''))
+			{
 		        printf ("Error \n");
 		        exit(0);
 		    }
 		}
-	} while (!(EOF == nextPeek) && !('\'' == nextPeek));
+	while (!(EOF == nextPeek) && !('\'' == nextPeek)){
+		sourceFile->get(nextChar);
+		numOfCharacters++;
+		tokStr += nextChar;
+		nextPeek = sourceFile->peek();
+		if (nextChar == '\\'){
+			if ((nextPeek == 't' || nextPeek == 'n' || nextPeek == '\\' || nextPeek == '\'')){
+				continue; 
+			}else{
+				printf("Error \n");
+				exit(0);
+			}
+		}
+	}
 	sourceFile->get(nextChar);
 	tokStr += nextChar;
 	return tokStr;
 }
-// extractTokenSpaces
-string lexer::tokenSpaces(){
+
+// Function to extract spaces 
+string lexer::extractTokenSpaces(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
-	do{
+	sourceFile->get(nextChar);
+	numOfCharacters++;
+	if (nextChar == 10 || nextChar == 13){
+		numOfCharacters = 1;
+		numberOfLines++;
+		}
+	tokStr += nextChar;
+	nextPeek = sourceFile->peek();
+	while (!(EOF == nextPeek) && isspace(nextPeek)){
 		sourceFile->get(nextChar);
-		charCount++;
+		numOfCharacters++;
 		if (nextChar == 10 || nextChar == 13){
-			charCount = 1;
-			lineCount++;
+			numOfCharacters = 1;
+			numberOfLines++;
 		}
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
-	} while (!(EOF == nextPeek) && isspace(nextPeek));
+	} 
 	return tokStr;
 }
 
 
+// Function to handle comment tokens
 string lexer::tokenComment(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
 	sourceFile->get(nextChar);
-	charCount++;
+	numOfCharacters++;
 	tokStr += nextChar;
 	nextPeek = sourceFile->peek();
 	if (nextPeek == '/'){
@@ -149,109 +159,64 @@ string lexer::tokenComment(){
 
 
 
-// // extractTokenComment
-// string lexer::tokenComment(){
-// 	string tokStr= "";
-// 	char nextPeek;
-// 	char nextChar;
-// 	sourceFile->get(nextChar);
-// 	charCount++;
-// 	tokStr += nextChar;
-// 	nextPeek = sourceFile->peek();
-// 	if (nextPeek == '/'){
-// 		sourceFile->get(nextChar);
-// 		tokStr += nextChar;
-// 		do{
-// 			sourceFile->get(nextChar);
-// 			tokStr += nextChar;
-// 			nextPeek = sourceFile->peek();
-// 		} while (!(EOF == nextPeek) && !(10 == nextPeek || 13 == nextPeek));
-// 		return tokStr;
-// 	} else {
-// 		return tokStr;
-// 	}
-// }
-
-
-
-// extractTokenComment
+// Function to extract an operator token
 string lexer::tokenOperator(){
 	string tokStr= "";
 	char nextPeek;
 	char nextChar;
 	sourceFile->get(nextChar);
- charCount++;
+ numOfCharacters++;
  tokStr += nextChar;
  nextPeek = sourceFile->peek();
- while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek)){
+ while (!(EOF == nextPeek) && isOperator(nextPeek)){
 		sourceFile->get(nextChar);
-		charCount++;
+		numOfCharacters++;
 		tokStr += nextChar;
 		nextPeek = sourceFile->peek();
 	}
  return tokStr;
 }
 
-
-// // extractTokenComment
-// string lexer::tokenOperator(){
-// 	string tokStr= "";
-// 	char nextPeek;
-// 	char nextChar;
-// 	do{
-// 		sourceFile->get(nextChar);
-// 		charCount++;
-// 		tokStr += nextChar;
-// 		nextPeek = sourceFile->peek();
-// 	} while (!(EOF == nextPeek) && isOperatorSymbol(nextPeek));
-// 	return tokStr;
-// }
-
-//This function is called by the read method in parser to fetch the new token.
-//As per the rpal lexicon, the first character is used to determine which rule applies,
-//a specialized function is called based on the rule that is applicable and
-//subsequent characters are read till the newly read character differs from the selected rule.
-//This marks the end of token, at which point it is passed to the parser.
-// takeNextToken
-token* lexer::getNextToken(){
-	//token
+// Function to read and process the next token from the input source file
+token* lexer::takeNextToken(){
 	token* tok = new token();
-	string tokenizedLex; //tokenset
-	int nextChar; // nextItem
+	string tokenizedLex; 
+	int nextChar; 
 	char readNext; 
 	nextChar = sourceFile->peek();
 	if (isalpha(nextChar)){
 		tokenizedLex = tokenIdentifier();
-        tok->tokType = TOK_IDENTIFIER; // toktype = type
+        tok->type = TOK_IDENTIFIER;
 	} else if (isdigit(nextChar)) {
-		tokenizedLex = tokenInteger();
-		tok->tokType = TOK_INTEGER;
+		tokenizedLex = extractTokenInteger();
+		tok->type = TOK_INTEGER;
 	} else if ('\'' == nextChar){
-		tokenizedLex = tokenStrings();
-		tok->tokType = TOK_STRING;
+		tokenizedLex = extractTokenStrings();
+		tok->type = TOK_STRING;
 	} else if (isspace(nextChar)){
-		tokenizedLex = tokenSpaces();
-		tok->tokType = TOK_DELETE;
-	} else if (isPunction(nextChar)){
+		tokenizedLex = extractTokenSpaces();
+		tok->type = TOK_DELETE;
+	} else if (isPunctuation(nextChar)){
 		sourceFile->get(readNext);
-		charCount++;
+		numOfCharacters++;
 		tokenizedLex = readNext;
-		tok->tokType = TOK_PUNCTION;
+		tok->type = TOK_PUNCTION;
 	} else if (nextChar == '/' ) {
 		tokenizedLex = tokenComment();
 		if (!tokenizedLex.compare("/")){
-			tok->tokType = TOK_OPERATOR;
+			tok->type = TOK_OPERATOR;
 		} else{
-			tok->tokType = TOK_DELETE;
+			tok->type = TOK_DELETE;
 		}
-	} else if (isOperatorSymbol(nextChar)){
+	} else if (isOperator(nextChar)){
 		tokenizedLex = tokenOperator();
-		tok->tokType = TOK_OPERATOR;
+		tok->type = TOK_OPERATOR;
 	} else if (EOF == nextChar) {
-		tok->tokType = TOK_EOF;
+		tok->type = TOK_EOF;
 	}
-	tok->tokValue = tokenizedLex;// value
-	tok->charCount = charCount;
-	tok->lineCount = lineCount;
+	tok->value = tokenizedLex;
+	tok->numOfCharacters = numOfCharacters;
+	tok->numOfLines = numberOfLines;
 	return tok;
 }
+

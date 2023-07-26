@@ -14,26 +14,24 @@ using namespace std;
 class lexer {
 public:
 	lexer(std::ifstream*);
-	token* getNextToken();
+	token* takeNextToken();
 
 private:
     ifstream* sourceFile;
-    int lineCount, charCount;
-    string tokenIdentifier();
-    string tokenInteger();
-    string tokenStrings();
-    string tokenSpaces();
+
+    int numberOfLines, numOfCharacters;
+
+    string tokenIdentifier();// extractTokenIdentifier
+    string extractTokenInteger();
+    string extractTokenStrings();
+    string extractTokenSpaces();
     string tokenComment();
     string tokenOperator();
     string tokenPunction();
-
-	bool isPunction(char);
-	bool isOperatorSymbol(char);
-	bool isSpaces(char);
-	bool isEOL(char);
-	bool isEOF(char);
-	bool isCommentChar(char);
-	bool isKeyword(string);
+	bool isPunctuation(char);
+	bool isOperator(char);
+	bool isCommentSymbol(char);
+	bool isKeywordSymbol(string);
 };
 
 #endif 

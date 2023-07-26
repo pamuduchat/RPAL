@@ -10,10 +10,10 @@ using namespace std;
 class parser {
 public:
 	parser (lexer*);
-    void evaluateProg();
+    void evaluateProgram();
 
 private:
-    lexer* lex;
+    lexer* lexAnalyzer;
     stack <treeNode*> treeStack;
     token *nextToken;
 
@@ -41,10 +41,10 @@ private:
 
 	void parse();
 	void standardize(treeNode*);
-    void buildTree(string, int); 
-    void buildTree(string, int, int);
-    void read(string);
-	bool isKeyword(string);
+    void buildAST(string, int); 
+    void buildAST(string, int, int);
+    void readToken(string);
+	bool isKeywordSymbol(string);
 };
 
 #endif 

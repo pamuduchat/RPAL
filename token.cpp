@@ -1,8 +1,8 @@
 #include "token.h"
 
 token::token() {
-	tokType = 0;
-	tokValue = "";
-	lineCount = 0;
-	charCount = 0;
+	type = 0;
+	value = "";
+	numOfLines = 0;
+	numOfCharacters = 0;
 }

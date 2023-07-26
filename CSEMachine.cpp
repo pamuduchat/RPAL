@@ -1,10 +1,3 @@
-/*
- * CSEMachine.cpp
- *
- *  Created on: Apr 21, 2016
- *      Author: sachin
- */
-
 #include "CSEMachine.h"
 
 CSEMachine::CSEMachine(treeNode* topNode) {
@@ -13,26 +6,20 @@ CSEMachine::CSEMachine(treeNode* topNode) {
 
 CSEMachine::CSEMachine(){
     numEnvironment = -1;
-    PE = createNewEnvironment();
-    environmentStack.push(PE);
-    deltas = new vector<Control *>;
-    rootDelta = new Control(Control::DELTA, deltas->size());
+    primitiveEnv = createNewEnvironment();
+    environmentStack.push(primitiveEnv);
+    controlStructures = new vector<Control *>;
+    rootDeltaControl = new Control(Control::DELTA, controlStructures->size());
 }
 
-CSEMachine::~CSEMachine() {
-
-}
-
-bool CSEMachine::checkInbuilt(string funcName) {
-    if (std::find(inbuiltFuncVector.begin(), inbuiltFuncVector.end(), funcName) != inbuiltFuncVector.end()){
+bool CSEMachine::checkInbuilt(string func) {
+    if (std::find(inbuiltFunctions.begin(), inbuiltFunctions.end(), func) != inbuiltFunctions.end()){
         return true;
     } else {
         return false;
     }
 }
-
-void CSEMachine::applyBinaryOPR(int type){
-
+void CSEMachine::applyBinaryOperator(int type){
     control.pop_back();
     Control *rand1 = execStack.top() ;
     execStack.pop();
@@ -243,181 +230,190 @@ void CSEMachine::applyBinaryOPR(int type){
 
 }
 
-void CSEMachine::escapePrintStr(string printStr){
-  for( int i = 0 ; i < printStr.length() ; i++ ){
-  char ch1 = printStr.at(i) ;
-    if( ch1 == '\\'){
+
+
+void CSEMachine::escapePrintStr(string string){
+  for( int i = 0 ; i < string.length() ; i++ ){
+  char character1 = string.at(i) ;
+    if( character1 == '\\'){
       i++ ;
-      if( i < printStr.length() ){
-        char ch2 = printStr.at(i) ;
-        if( ch2 == 'n' )
+      if( i < string.length() ){
+        char character2 = string.at(i) ;
+        if( character2 == 'n' )
       cout << endl;
-        else if( ch2 == 't' )
+        else if( character2 == 't' )
       cout << "\t" ;
         else
-      cout <<  ch1 << ch2 ;
+      cout <<  character1 << character2 ;
       }
     }
     else
-      cout << ch1 ;
+      cout << character1 ;
     }
     cout.flush();
 }
 
-void CSEMachine::applyThisRator(Control* rator){
+void CSEMachine::applyOperator(Control* rator) {
     Control* temp;
-    Control* toPush;
-    if(rator->variables.front() == "Print"){
+    Control* toPush = nullptr;
+
+    // Helper function to create a new boolean Control with the given value
+    auto createBoolControl = [](bool value) -> Control* {
+        Control* boolControl = new Control();
+        boolControl->type = value ? Control::TRUE : Control::FALSE;
+        return boolControl;
+    };
+    if (rator->variables.front() == "Print") {
         string print_str = execStack.top()->toStr();
-        escapePrintStr(print_str); //WHY?
+        escapePrintStr(print_str);
         execStack.pop();
         toPush = new Control(Control::DUMMY);
-    }else if(rator->variables.front() == "Order"){
-        Control *tuple = execStack.top() ;
+    } else if (rator->variables.front() == "Order") {
+        Control* tuple = execStack.top();
         execStack.pop();
-        Control *order = new Control();
+        Control* order = new Control();
         order->type = Control::INTEGER;
-        if( tuple->type == Control::TUPLE){
+
+        if (tuple->type == Control::TUPLE) {
             order->ctrlVal = to_string(tuple->ctrlTuples.size());
-        }else if( tuple->type == Control::NIL ){
+        } else if (tuple->type == Control::NIL) {
             order->ctrlVal = to_string(0);
-        }else{
-            cout <<  "Invalid argument for 'Order'" << endl ;
-            exit(1) ;
+        } else {
+            exit(1);
         }
         toPush = order;
-    }else if(rator->variables.front() == "Isinteger"){
+    } else if (rator->variables.front() == "Isinteger") {
         temp = execStack.top();
         execStack.pop();
-        toPush = new Control(temp->type == Control::INTEGER ? Control::TRUE : Control::FALSE);
-    }else if(rator->variables.front() == "Istruthvalue"){
+        toPush = createBoolControl(temp->type == Control::INTEGER);
+    } else if (rator->variables.front() == "Istruthvalue") {
         temp = execStack.top();
         execStack.pop();
-        toPush = new Control((temp->type == Control::TRUE || temp->type == Control::FALSE) ? Control::TRUE : Control::FALSE);
-    }else if(rator->variables.front() == "Isstring"){
+        toPush = createBoolControl(temp->type == Control::TRUE || temp->type == Control::FALSE);
+    } else if (rator->variables.front() == "Isstring") {
         temp = execStack.top();
         execStack.pop();
-        toPush = new Control(temp->type == Control::STRING ? Control::TRUE : Control::FALSE);
-    }else if(rator->variables.front() == "Istuple"){
+        toPush = createBoolControl(temp->type == Control::STRING);
+    } else if (rator->variables.front() == "Istuple") {
         temp = execStack.top();
         execStack.pop();
-        toPush = new Control((temp->type == Control::TUPLE || temp->type == Control::NIL) ? Control::TRUE : Control::FALSE);
-    }else if(rator->variables.front() == "Isfunction"){
+        toPush = createBoolControl(temp->type == Control::TUPLE || temp->type == Control::NIL);
+    } else if (rator->variables.front() == "Isfunction") {
         temp = execStack.top();
         execStack.pop();
-        toPush = new Control(temp->type == Control::LAMBDA ? Control::TRUE : Control::FALSE);
-    }else if(rator->variables.front() == "Isdummy"){
+        toPush = createBoolControl(temp->type == Control::LAMBDA);
+    } else if (rator->variables.front() == "Isdummy") {
         temp = execStack.top();
         execStack.pop();
-        toPush = new Control(temp->type == Control::DUMMY ? Control::TRUE : Control::FALSE);
-    }else if(rator->variables.front() == "Stem"){
-        if(execStack.top()->type == Control::STRING){
-            Control *strControl= new Control(Control::STRING);
+        toPush = createBoolControl(temp->type == Control::DUMMY);
+    } else if (rator->variables.front() == "Stem") {
+        if (execStack.top()->type == Control::STRING) {
+            Control* strControl = new Control(Control::STRING);
             strControl->ctrlVal = execStack.top()->ctrlVal.substr(0, 1);
             execStack.pop();
             toPush = strControl;
-        }else{
-            cout << "STEM: Expecting String" << endl;
+        } else {
             exit(1);
         }
-    }else if(rator->variables.front() == "Stern"){
-        if(execStack.top()->type == Control::STRING){
-            Control *strControl = new Control(Control::STRING);
-            strControl->ctrlVal = execStack.top()->ctrlVal.substr(1, execStack.top()->ctrlVal.length()-1);
+    } else if (rator->variables.front() == "Stern") {
+        if (execStack.top()->type == Control::STRING) {
+            Control* strControl = new Control(Control::STRING);
+            strControl->ctrlVal = execStack.top()->ctrlVal.substr(1, execStack.top()->ctrlVal.length() - 1);
             execStack.pop();
             toPush = strControl;
-        }else{
-            cout << "STERN: Expecting String" << endl;
+        } else {
             exit(1);
         }
-    }else if(rator->variables.front() == "ItoS"){
-        if(execStack.top()->type == Control::INTEGER){
-           Control *strControl = new Control(Control::STRING);
-           strControl->ctrlVal = execStack.top()->ctrlVal;
-           execStack.pop();
-           toPush = strControl;
-        }else{
-            cout << "Itos: Expecting Integer" << endl;
+    } else if (rator->variables.front() == "ItoS") {
+        if (execStack.top()->type == Control::INTEGER) {
+            Control* strControl = new Control(Control::STRING);
+            strControl->ctrlVal = execStack.top()->ctrlVal;
+            execStack.pop();
+            toPush = strControl;
+        } else {
             exit(1);
         }
-    }else if(rator->variables.front() == "Conc"){ //could have check for string here
-        Control *concl = new Control(Control::NAME);
+    } else if (rator->variables.front() == "Conc") { // Could have check for string here
+        Control* concl = new Control(Control::NAME);
         concl->variables.push_back("Conclambda");
         concl->variables.push_back(execStack.top()->ctrlVal);
         execStack.pop();
         toPush = concl;
-    }else if(rator->variables.front() == "Conclambda"){
-        Control *concatVars = new Control(Control::STRING, rator->variables.at(1)+ execStack.top()->ctrlVal);
+    } else if (rator->variables.front() == "Conclambda") {
+        Control* concatVars = new Control(Control::STRING, rator->variables.at(1) + execStack.top()->ctrlVal);
         execStack.pop();
         toPush = concatVars;
-    }else if(rator->variables.front() == "Null"){
-        Control *boolR = new Control();
-        if(execStack.top()->type == Control::NIL || (execStack.top()->type == Control::TUPLE && execStack.top()->ctrlTuples.empty()))
+    } else if (rator->variables.front() == "Null") {
+        Control* boolR = new Control();
+        if (execStack.top()->type == Control::NIL || (execStack.top()->type == Control::TUPLE && execStack.top()->ctrlTuples.empty()))
             boolR->type = Control::TRUE;
         else
             boolR->type = Control::FALSE;
         execStack.pop();
         toPush = boolR;
-    }else{
-        cout << "ERROR: value:%" << rator->ctrlVal << "%type:" << rator->type << endl;
-        printCS();
+    } else {
         return;
     }
+
     execStack.push(toPush);
 }
 
-void CSEMachine::handleName(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
-    if(checkInbuilt(currControl->variables.front())){
+
+void CSEMachine::handleName(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+    if(checkInbuilt(currentControl->variables.front())){
         control.pop_back();
-        execStack.push(currControl) ;
+        execStack.push(currentControl) ;
     } else {
-        temp = currEnvironment->lookup(currControl->variables.front());
+        temp = currentEnvironment->lookup(currentControl->variables.front());
         if(temp != NULL){
             control.pop_back();
             execStack.push(temp) ;
-        } else {
-            cout << " Unknown name" +  currControl->ctrlVal << endl;
-        }
+        } 
     }
 }
 
-void CSEMachine::rule411(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
-    newEnv = createNewEnvironment();
-    newEnv->assignParent(environmentMap.find(rator->associatedENV)->second);
-    currEnvironment = newEnv ;
-    if( rator->variables.size() == 1 ){
-        currEnvironment->symbolTable[rator->variables.at(0)] = execStack.top();
-        execStack.pop();
+void CSEMachine::rule11(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+newEnvironment = createNewEnvironment();
+newEnvironment->assignParent(environmentMap[rator->associatedENV]);
+currentEnvironment = newEnvironment;
+
+if (rator->variables.size() == 1) {
+    // Single variable case
+    currentEnvironment->symbolTable[rator->variables[0]] = execStack.top();
+    execStack.pop();
+} else {
+    // Tuple assignment case
+    temp = execStack.top();
+    execStack.pop();
+    if (temp->type == Control::TUPLE && rator->variables.size() == temp->ctrlTuples.size()) {
+        for (int i = 0; i < rator->variables.size(); i++) {
+            currentEnvironment->symbolTable[rator->variables[i]] = temp->ctrlTuples[i];
+        }
     } else {
-        temp = execStack.top(); //Contain tuple pls
-        execStack.pop() ;
-        if( temp->type == Control::TUPLE && rator->variables.size() == temp->ctrlTuples.size() )
-        {
-            for( int i = 0 ; i < rator->variables.size() ; i++ )
-            {
-                currEnvironment->symbolTable[rator->variables.at(i)] = temp->ctrlTuples.at(i);
-            }
-        } else {
-            cout << "Number/Type of arguments to a function doesn't match. rator variable size: "  << rator->variables.size() << " temp tuples->size:" << temp->ctrlTuples.size() << endl;
-            exit(1);
-        }
-    }
-    environmentStack.push(currEnvironment);
-    control.push_back(new Control(Control::ENV, currEnvironment->id, false));
-    execStack.push(new Control(Control::ENV, currEnvironment->id, false));
-    for(int i=0;i<deltas->at(rator->index)->ctrlStruct->size();i++){
-        control.push_back(deltas->at(rator->index)->ctrlStruct->at(i));
+        exit(1); // Error: Incompatible tuple assignment
     }
 }
 
-void CSEMachine::rule12(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
+environmentStack.push(currentEnvironment);
+// Push a new Control node representing the environment onto the control stack and execStack
+control.push_back(new Control(Control::ENV, currentEnvironment->id, false));
+execStack.push(new Control(Control::ENV, currentEnvironment->id, false));
+
+// Push the control structures of the rator's index onto the control stack
+for (int i = 0; i < controlStructures->at(rator->index)->ctrlStruct->size(); i++) {
+    control.push_back(controlStructures->at(rator->index)->ctrlStruct->at(i));
+}
+
+}
+
+void CSEMachine::rule12(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     Control *eta = new Control(execStack.top()) ;
     execStack.pop();
     eta->type = Control::ETA;
     execStack.push(eta);
 }
 
-void CSEMachine::rule13(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
+void CSEMachine::rule13(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     control.push_back(new Control(Control::GAMMA));
     control.push_back(new Control(Control::GAMMA));
     execStack.push(rator);
@@ -425,38 +421,47 @@ void CSEMachine::rule13(Control* temp, Control* currControl, Control* rator, Env
     lambda->associatedENV = rator->associatedENV;
     execStack.push(lambda);
 }
-
-void CSEMachine::rule10(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
-    if( execStack.top()->type == Control::INTEGER ){
-    temp = rator->ctrlTuples.at(atoi(execStack.top()->ctrlVal.c_str()) - 1) ;
+void CSEMachine::rule10(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+    if (execStack.top()->type == Control::INTEGER) {
+    int index = atoi(execStack.top()->ctrlVal.c_str()) - 1;
     execStack.pop();
-    execStack.push(temp) ;
-    } else{
-        cout << "Expected an integer while indexing tuples!";
-        exit(1) ;
-    }
-}
 
-
-void CSEMachine::handleGAMMA(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
-    control.pop_back();
-    rator = execStack.top() ;
-    execStack.pop();
-    if( rator->type== Control::LAMBDA ){
-        rule411(temp, currControl, rator, newEnv, deltaIndex);
-    }else if( rator->type == Control::YSTAR ){
-        rule12(temp, currControl, rator, newEnv, deltaIndex);
-    } else if( rator->type == Control::ETA ){
-        rule13(temp, currControl, rator, newEnv, deltaIndex);
-    }else if(rator->type == Control::TUPLE){ //Rule 10
-        rule10(temp, currControl, rator, newEnv, deltaIndex);
+    if (index >= 0 && index < rator->ctrlTuples.size()) {
+        temp = rator->ctrlTuples[index];
+        execStack.push(temp);
     } else {
-        applyThisRator(rator);
+        exit(1); // Error: Index out of range
     }
+} else {
+    exit(1); // Error: Operand is not an INTEGER
 }
 
+}
+void CSEMachine::handleGAMMA(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+    control.pop_back();
+rator = execStack.top();
+execStack.pop();
 
-void CSEMachine::handleBeta(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
+switch (rator->type) {
+    case Control::LAMBDA:
+        rule11(temp, currentControl, rator, newEnvironment, deltaIndex);
+        break;
+    case Control::YSTAR:
+        rule12(temp, currentControl, rator, newEnvironment, deltaIndex);
+        break;
+    case Control::ETA:
+        rule13(temp, currentControl, rator, newEnvironment, deltaIndex);
+        break;
+    case Control::TUPLE:
+        rule10(temp, currentControl, rator, newEnvironment, deltaIndex);
+        break;
+    default:
+        applyOperator(rator);
+        break;
+}
+
+}
+void CSEMachine::handleBeta(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     control.pop_back();
     if(execStack.top()->type == Control::TRUE){
         control.pop_back();
@@ -464,7 +469,6 @@ void CSEMachine::handleBeta(Control* temp, Control* currControl, Control* rator,
             deltaIndex = control.at(control.size() -1)->index;
             control.pop_back();
         }else{
-            cout << "Delta Expected " << control.at(control.size() -1)->type << endl;
             exit(1);
         }
     }else if(execStack.top()->type == Control::FALSE){
@@ -473,141 +477,70 @@ void CSEMachine::handleBeta(Control* temp, Control* currControl, Control* rator,
             control.pop_back();
             control.pop_back();
         }else{
-            cout << "Delta Expected, found, " << control.at(control.size() -1)->type << endl;
             exit(1);
         }
     }else{
-        cout << " '->' operator Expected a bool value"  << endl;
         exit(1);
     }
     execStack.pop();
-    for(int i=0; i< deltas->at(deltaIndex)->ctrlStruct->size() ; i++){
-        control.push_back(deltas->at(deltaIndex)->ctrlStruct->at(i));
+    for(int i=0; i< controlStructures->at(deltaIndex)->ctrlStruct->size() ; i++){
+        control.push_back(controlStructures->at(deltaIndex)->ctrlStruct->at(i));
     }
 }
 
-void CSEMachine::handleEnv(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
+void CSEMachine::handleEnvironment(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     temp = execStack.top() ;
     execStack.pop();
-    if( execStack.top()->type == Control::ENV && execStack.top()->index == currControl->index ){
+    if( execStack.top()->type == Control::ENV && execStack.top()->index == currentControl->index ){
         control.pop_back();
         execStack.pop();
         execStack.push(temp) ;
-
         environmentStack.pop() ;
-        currEnvironment = environmentStack.top() ;
+        currentEnvironment = environmentStack.top() ;
     }else{
-        cout << "Environment markers do not match!" << endl;
         exit(1) ;
     }
 }
 
-void CSEMachine::handleTau(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
+// void CSEMachine::handleTau(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+//     control.pop_back();
+//     temp = new Control() ;
+//     temp->type = Control::TUPLE;
+//     temp->ctrlTuples.clear();
+//     for(int i=0; i<currentControl->index; i++ )
+//     {
+//         temp->ctrlTuples.push_back(execStack.top()) ;
+//         execStack.pop() ;
+//     }
+//     execStack.push(temp) ;
+// }
+
+void CSEMachine::handleTau(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex) {
     control.pop_back();
-    temp = new Control() ;
+    temp = new Control();
     temp->type = Control::TUPLE;
     temp->ctrlTuples.clear();
-    for(int i=0; i<currControl->index; i++ )
-    {
-        temp->ctrlTuples.push_back(execStack.top()) ;
-        execStack.pop() ;
-    }
-    execStack.push(temp) ;
 
+    int i = 0;
+    while (i < currentControl->index) {
+        temp->ctrlTuples.push_back(execStack.top());
+        execStack.pop();
+        i++;
+    }
+
+    execStack.push(temp);
 }
 
-void CSEMachine::handleNeg(Control* temp, Control* currControl, Control* rator, Environment* newEnv, int deltaIndex){
+void CSEMachine::handleNeg(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     control.pop_back();
     if(execStack.top()->type == Control::INTEGER )
         execStack.top()->ctrlVal = to_string(-1*atoi(execStack.top()->ctrlVal.c_str()));
     else
     {
-        cout << "Neg: Int not found" << endl;
         exit(1) ;
     }
 }
 
-void CSEMachine::execCSE(){
-    Control *temp = NULL;
-    Control *currControl = NULL;
-    Control *rator = NULL;
-    Environment *newEnv = NULL;
-    int deltaIndex = -1;
-    while(!control.empty()){
-        //printCS();
-        currControl = control.at(control.size()-1);
-        temp = NULL;
-        switch(currControl->type){
-        case Control::INTEGER :
-        case Control::STRING :
-        case Control::TRUE :
-        case Control::FALSE :
-        case Control::DUMMY :
-        case Control::YSTAR :
-            control.pop_back();
-            execStack.push(currControl) ;
-            break;
-        case Control::NAME:
-            handleName(temp, currControl, rator, newEnv, deltaIndex);
-            break;
-        case Control::NIL :
-            currControl->ctrlTuples.clear();
-            control.pop_back();
-            execStack.push(currControl) ;
-            break ;
-        case Control::LAMBDA : //CSE Rule 2
-            currControl->associatedENV = currEnvironment->id;
-            control.pop_back();
-            execStack.push(currControl) ;
-            break ;
-        case Control::GAMMA:
-            handleGAMMA(temp, currControl, rator, newEnv, deltaIndex);
-            break;
-        case Control::NOT :
-            control.pop_back();
-            temp = execStack.top() ;
-            if( temp->type == Control::TRUE || temp->type == Control::FALSE ){
-                temp->type =  temp->type ==  Control::TRUE ? Control::FALSE : Control::TRUE;
-            }else{
-                cout << "Expecting a bool value for operator 'not'" << endl;
-                exit(1) ;
-            }
-            break ;
-        //CSE Rule 6
-        case Control::GR :
-        case Control::GE :
-        case Control::LS :
-        case Control::LE :
-        case Control::EQ :
-        case Control::NE :
-        case Control::AUG :
-        case Control::OR :
-        case Control::AND_LOGICAL :
-        case Control::ADD :
-        case Control::SUBTRACT :
-        case Control::MULTIPLY :
-        case Control::DIVIDE :
-        case Control::EXP :
-            applyBinaryOPR(currControl->type) ;
-            break ;
-        case Control::TAU:
-            handleTau(temp, currControl, rator, newEnv, deltaIndex);
-            break ;
-        case Control::NEG : //CSE Rule 7
-            handleNeg(temp, currControl, rator, newEnv, deltaIndex);
-            break ;
-        case Control::ENV:
-            handleEnv(temp, currControl, rator, newEnv, deltaIndex);
-            break;
-        case Control::BETA:
-            handleBeta(temp, currControl, rator, newEnv, deltaIndex);
-            break;
-        default:
-            cout << "Unknown Control Type: " << currControl->type << endl;
-            break;
-        }
-    }
-}
 
 Environment* CSEMachine::createNewEnvironment(){
     tempEnvironment = new Environment(numEnvironment);
@@ -615,87 +548,126 @@ Environment* CSEMachine::createNewEnvironment(){
     numEnvironment++;
     return tempEnvironment;
 }
+  void CSEMachine::execCSE() {
+    Control* temp = nullptr;
+    Control* currentControl = nullptr;
+    Control* rator = nullptr;
+    Environment* newEnvironment = nullptr;
+    int deltaIndex = -1;
 
-void CSEMachine::printCS(){
-    for(int i=0; i < control.size() ; i++){
-        cout << control.at(i)->toStr() << " " ;
-    }
-    printf ("---------");
-    stack<Control *> temp;
-    while(!execStack.empty()){
-        cout << execStack.top()->toStr() << " " ;
-        temp.push(execStack.top());
-        execStack.pop();
-    }
-    printf ("\n");
-    while(!temp.empty()){
-      execStack.push(temp.top());
-      temp.pop();
-    }
-}
+    while (!control.empty()) {
+        currentControl = control.back();
+        temp = nullptr;
 
-
-void CSEMachine::deltaPrint(){
-    for(int j = 0; j < deltas->size(); j++){
-        cout << deltas->at(j)->toStr() << " : ";
-        for(int k = 0; k < deltas->at(j)->ctrlStruct->size(); k++){
-            cout << deltas->at(j)->ctrlStruct->at(k)->toStr() << " ";
+        if (currentControl->type == Control::INTEGER ||
+            currentControl->type == Control::STRING ||
+            currentControl->type == Control::TRUE ||
+            currentControl->type == Control::FALSE ||
+            currentControl->type == Control::DUMMY ||
+            currentControl->type == Control::YSTAR) {
+            control.pop_back();
+            execStack.push(currentControl);
+        } else if (currentControl->type == Control::NAME) {
+            handleName(temp, currentControl, rator, newEnvironment, deltaIndex);
+        } else if (currentControl->type == Control::NIL) {
+            currentControl->ctrlTuples.clear();
+            control.pop_back();
+            execStack.push(currentControl);
+        } else if (currentControl->type == Control::LAMBDA) {
+            currentControl->associatedENV = currentEnvironment->id;
+            control.pop_back();
+            execStack.push(currentControl);
+        } else if (currentControl->type == Control::GAMMA) {
+            handleGAMMA(temp, currentControl, rator, newEnvironment, deltaIndex);
+        } else if (currentControl->type == Control::NOT) {
+            control.pop_back();
+            temp = execStack.top();
+            if (temp->type == Control::TRUE || temp->type == Control::FALSE) {
+                temp->type = (temp->type == Control::TRUE) ? Control::FALSE : Control::TRUE;
+            } else {
+                exit(1);
+            }
+        } else if (currentControl->type == Control::GR ||
+                   currentControl->type == Control::GE ||
+                   currentControl->type == Control::LS ||
+                   currentControl->type == Control::LE ||
+                   currentControl->type == Control::EQ ||
+                   currentControl->type == Control::NE ||
+                   currentControl->type == Control::AUG ||
+                   currentControl->type == Control::OR ||
+                   currentControl->type == Control::AND_LOGICAL ||
+                   currentControl->type == Control::ADD ||
+                   currentControl->type == Control::SUBTRACT ||
+                   currentControl->type == Control::MULTIPLY ||
+                   currentControl->type == Control::DIVIDE ||
+                   currentControl->type == Control::EXP) {
+            applyBinaryOperator(currentControl->type);
+        } else if (currentControl->type == Control::TAU) {
+            handleTau(temp, currentControl, rator, newEnvironment, deltaIndex);
+        } else if (currentControl->type == Control::NEG) {
+            handleNeg(temp, currentControl, rator, newEnvironment, deltaIndex);
+        } else if (currentControl->type == Control::ENV) {
+            handleEnvironment(temp, currentControl, rator, newEnvironment, deltaIndex);
+        } else if (currentControl->type == Control::BETA) {
+            handleBeta(temp, currentControl, rator, newEnvironment, deltaIndex);
         }
-        cout << endl;
     }
 }
 
-void CSEMachine::init(treeNode *root){
-    deltas->push_back(rootDelta);
-    flattenTree(root,rootDelta, deltas);
-    //deltaPrint();
+
+void CSEMachine::init(treeNode *root) {
+    controlStructures->push_back(rootDeltaControl);
+    flattenTree(root, rootDeltaControl, controlStructures);
     control.push_back(new Control(Control::ENV, 0, false));
     execStack.push(new Control(Control::ENV, 0, false));
-    for(int i=0; i< rootDelta->ctrlStruct->size(); i++)
-        control.push_back(rootDelta->ctrlStruct->at(i));
+
+    int i = 0;
+    while (i < rootDeltaControl->ctrlStruct->size()) {
+        control.push_back(rootDeltaControl->ctrlStruct->at(i));
+        i++;
+    }
+
     environmentStack.push(createNewEnvironment());
-    environmentStack.top()->assignParent(PE);
-    currEnvironment = environmentStack.top();
+    environmentStack.top()->assignParent(primitiveEnv);
+    currentEnvironment = environmentStack.top();
 }
+
 
 void CSEMachine::run(treeNode *root){
     init(root);
     execCSE();
-    if(!control.empty() || environmentStack.size() != 1){
-        printf("stack/env_stack is not empty");
-    }
     printf ("\n");
 }
 
-void CSEMachine::flattenDeltaThen(treeNode* node, Control *delta,vector<Control *> *deltas){
-    Control *deltaThen = new Control(Control::DELTA, deltas->size());
-    deltas->push_back(deltaThen);
-    delta->ctrlStruct->push_back(new Control(Control::DELTA, deltas->size()-1)); //delta then
+void CSEMachine::flattenDeltaThen(treeNode* node, Control *delta,vector<Control *> *controlStructures){
+    Control *deltaThen = new Control(Control::DELTA, controlStructures->size());
+    controlStructures->push_back(deltaThen);
+    delta->ctrlStruct->push_back(new Control(Control::DELTA, controlStructures->size()-1)); 
     if(node->childNode->siblingNode->type == treeNode::TERNARY){
-        flattenTree(node->childNode->siblingNode, deltaThen, deltas);
+        flattenTree(node->childNode->siblingNode, deltaThen, controlStructures);
     }else{
         vector<string> *tempvariables = NULL;
         if(node->childNode->siblingNode->type == treeNode::TAU){
             treeNode *temp = node->childNode->siblingNode->childNode;
             tempvariables = new vector<string>;
             while(temp!= NULL){
-                tempvariables->push_back(temp->nodeString); // will these be any useful
+                tempvariables->push_back(temp->nodeString); 
                 temp = temp->siblingNode;
             }
         }
-        deltaThen->addCtrl(node->childNode->siblingNode, node->childNode->siblingNode->type, node->childNode->siblingNode->nodeString, tempvariables, deltaThen, deltas->size());
+        deltaThen->addControl(node->childNode->siblingNode, node->childNode->siblingNode->type, node->childNode->siblingNode->nodeString, tempvariables, deltaThen, controlStructures->size());
         if(node->childNode->siblingNode->childNode != NULL)
-            flattenTree(node->childNode->siblingNode->childNode, deltaThen, deltas);
+            flattenTree(node->childNode->siblingNode->childNode, deltaThen, controlStructures);
     }
 }
 
-void CSEMachine::flattenDeltaElse(treeNode* node, Control *delta,vector<Control *> *deltas){
-    Control *deltaElse = new Control(Control::DELTA, deltas->size());
-    deltas->push_back(deltaElse);
-    delta->ctrlStruct->push_back(new Control(Control::DELTA, deltas->size()-1));
+void CSEMachine::flattenDeltaElse(treeNode* node, Control *delta,vector<Control *> *controlStructures){
+    Control *deltaElse = new Control(Control::DELTA, controlStructures->size());
+    controlStructures->push_back(deltaElse);
+    delta->ctrlStruct->push_back(new Control(Control::DELTA, controlStructures->size()-1));
 
     if(node->childNode->siblingNode->siblingNode->type == treeNode::TERNARY){
-        flattenTree(node->childNode->siblingNode->siblingNode,deltaElse, deltas);
+        flattenTree(node->childNode->siblingNode->siblingNode,deltaElse, controlStructures);
     }else{
         vector<string> *tempvariables = NULL;
         if(node->childNode->siblingNode->siblingNode->type == treeNode::TAU){
@@ -706,25 +678,25 @@ void CSEMachine::flattenDeltaElse(treeNode* node, Control *delta,vector<Control 
                 temp = temp->siblingNode;
             }
         }
-        deltaElse->addCtrl(node->childNode->siblingNode->siblingNode, node->childNode->siblingNode->siblingNode->type, node->childNode->siblingNode->siblingNode->nodeString, tempvariables, deltaElse, deltas->size());
+        deltaElse->addControl(node->childNode->siblingNode->siblingNode, node->childNode->siblingNode->siblingNode->type, node->childNode->siblingNode->siblingNode->nodeString, tempvariables, deltaElse, controlStructures->size());
         if(node->childNode->siblingNode->siblingNode->childNode != NULL)
-            flattenTree(node->childNode->siblingNode->siblingNode->childNode,deltaElse, deltas);
+            flattenTree(node->childNode->siblingNode->siblingNode->childNode,deltaElse, controlStructures);
     }
 }
 
-void CSEMachine::flattenTernary(treeNode* node, Control *delta,vector<Control *> *deltas){
-    flattenDeltaThen(node, delta, deltas);
+void CSEMachine::flattenTernary(treeNode* node, Control *delta,vector<Control *> *controlStructures){
+    flattenDeltaThen(node, delta, controlStructures);
 
-    flattenDeltaElse(node, delta, deltas);
+    flattenDeltaElse(node, delta, controlStructures);
 
     Control *beta = new Control(Control::BETA);
     delta->ctrlStruct->push_back(new Control(Control::BETA, "beta"));
-    delta->addCtrl(node->childNode, node->childNode->type, node->childNode->nodeString, NULL, NULL, deltas->size());
+    delta->addControl(node->childNode, node->childNode->type, node->childNode->nodeString, NULL, NULL, controlStructures->size());
     if(node->childNode->childNode != NULL)
-        flattenTree(node->childNode->childNode, delta, deltas);
+        flattenTree(node->childNode->childNode, delta, controlStructures);
 }
 
-void CSEMachine::flattenLAMBDA(treeNode* node, Control *delta,vector<Control *> *deltas){
+void CSEMachine::flattenLAMBDA(treeNode* node, Control *delta,vector<Control *> *controlStructures){
     Control *temp = NULL;
     vector<string> *variables = NULL;
     variables = new vector<string>();
@@ -736,41 +708,43 @@ void CSEMachine::flattenLAMBDA(treeNode* node, Control *delta,vector<Control *> 
             variables->push_back(temp->nodeString);
             temp = temp->siblingNode;
         }
-    }else{
-        cout << "Expected Identifier or Comma, but din't find" << endl;
     }
-    temp = new Control(Control::DELTA, deltas->size());
-    deltas->push_back(temp);
-    delta->addCtrl(node, node->type, node->nodeString, variables, temp, deltas->size());
-    flattenTree(node->childNode->siblingNode, temp, deltas);
+    temp = new Control(Control::DELTA, controlStructures->size());
+    controlStructures->push_back(temp);
+    delta->addControl(node, node->type, node->nodeString, variables, temp, controlStructures->size());
+    flattenTree(node->childNode->siblingNode, temp, controlStructures);
 
     if(NULL != node->siblingNode)
-        flattenTree(node->siblingNode,delta, deltas);
+        flattenTree(node->siblingNode,delta, controlStructures);
 
 }
 
-void CSEMachine::flattenTree(treeNode* node, Control *delta,vector<Control *> *deltas){
-    Control *temp_del_ptr = NULL;
-    vector<string> *variables = NULL;
-    if(treeNode::LAMBDA == node->type){
-        flattenLAMBDA(node, delta, deltas);
-    }else if(node->type == treeNode::TERNARY){
-        flattenTernary(node, delta, deltas);
-    }else{
-        if(node->type == treeNode::TAU){
+void CSEMachine::flattenTree(treeNode* node, Control* delta, vector<Control*>* controlStructures) {
+    Control* temp_del_ptr = NULL;
+    vector<string>* variables = NULL;
+
+    if (treeNode::LAMBDA == node->type) {
+        flattenLAMBDA(node, delta, controlStructures);
+    } else if (node->type == treeNode::TERNARY) {
+        flattenTernary(node, delta, controlStructures);
+    } else {
+        if (node->type == treeNode::TAU) {
             variables = new vector<string>();
-            treeNode *temp = node->childNode;
-            while(temp!= NULL){
+            treeNode* temp = node->childNode;
+            for (; temp != NULL; temp = temp->siblingNode) {
                 variables->push_back(temp->nodeString);
-                temp = temp->siblingNode;
             }
         }
-        delta->addCtrl(node, node->type, node->nodeString, variables, temp_del_ptr, deltas->size());
-        if(NULL != node->childNode){
-            flattenTree(node->childNode, delta, deltas);
+
+        delta->addControl(node, node->type, node->nodeString, variables, temp_del_ptr, controlStructures->size());
+
+        if (NULL != node->childNode) {
+            flattenTree(node->childNode, delta, controlStructures);
         }
-        if(NULL != node->siblingNode){
-            flattenTree(node->siblingNode, delta,deltas);
+        if (NULL != node->siblingNode) {
+            flattenTree(node->siblingNode, delta, controlStructures);
         }
     }
 }
+
+

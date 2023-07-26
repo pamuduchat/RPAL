@@ -48,7 +48,7 @@ public:
     string nodeString;
     treeNode* childNode = NULL;
     treeNode* siblingNode = NULL;
-    int type;
+    int type; //nodeType
 
 };
 

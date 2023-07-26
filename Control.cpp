@@ -146,92 +146,93 @@ Control::Control(Control::Type type) {
     this->type = type;
 }
 
-void Control::addCtrl(treeNode* node, int type, string value, vector<string> *variables, Control* del_ptr, int deltas_size){
-  int tau_count;
-  Control *temp = NULL;
-  switch(node->type){
-  case treeNode::LAMBDA:
-    temp = new Control(Control::LAMBDA, variables, del_ptr, deltas_size-1 );
-    break;
-  case treeNode::INTEGER:
-    temp = new Control(Control::INTEGER, node->nodeString);
-    break;
-  case treeNode::MULTIPLY:
-    temp = new Control(Control::MULTIPLY, node->nodeString);
-    break;
-  case treeNode::ADD:
-    temp = new Control(Control::ADD, node->nodeString);
-    break;
-  case treeNode::SUBTRACT:
-    temp = new Control(Control::SUBTRACT, node->nodeString);
-    break;
-  case treeNode::DIVIDE:
-    temp = new Control(Control::DIVIDE, node->nodeString);
-    break;
-  case treeNode::GAMMA:
-    temp = new Control(Control::GAMMA, node->nodeString);
-    break;
-  case treeNode::IDENTIFIER:
-    temp = new Control(node->nodeString, Control::NAME);
-    break;
-  case treeNode::STRING:
-    temp = new Control(Control::STRING, node->nodeString.substr(1, node->nodeString.length() - 2));
-    break;
-  case treeNode::TAU:
-    if(variables!=NULL)
-      tau_count = variables->size();
-    temp = new Control(Control::TAU, tau_count, false);
-    break;
-  case treeNode::AUG:
-    temp = new Control(Control::AUG);
-    break;
-  case treeNode::NIL:
-    temp = new Control(Control::NIL);
-    break;
-  case treeNode::YSTAR:
-    temp = new Control(Control::YSTAR);
-    break;
-  case treeNode::AND_LOGICAL:
-    temp = new Control(Control::AND_LOGICAL);
-    break;
-  case treeNode::OR:
-    temp = new Control(Control::OR);
-    break;
-  case treeNode::NE:
-    temp = new Control(Control::NE);
-    break;
-  case treeNode::EQ:
-    temp = new Control(Control::EQ);
-    break;
-  case treeNode::LS:
-    temp = new Control(Control::LS);
-    break;
-  case treeNode::LE:
-    temp = new Control(Control::LE);
-    break;
-  case treeNode::GR:
-    temp = new Control(Control::GR);
-    break;
-  case treeNode::GE:
-    temp = new Control(Control::GE);
-    break;
-  case treeNode::NEG:
-    temp = new Control(Control::NEG);
-    break;
-  case treeNode::FALSE:
-    temp = new Control(Control::FALSE);
-    break;
-  case treeNode::TRUE:
-    temp = new Control(Control::TRUE);
-    break;
-  case treeNode::NOT:
-    temp = new Control(Control::NOT);
-    break;
-  case treeNode::DUMMY:
-    temp = new Control(Control::DUMMY);
-    break;
-  };
-  ctrlStruct->push_back(temp);
+void Control::addControl(treeNode* node, int type, string value, vector<string>* variables, Control* del_ptr, int deltas_size) {
+    int tau_count;
+    Control* temp = NULL;
+    switch (node->type) {
+        case treeNode::LAMBDA:
+            temp = new Control(Control::LAMBDA, variables, del_ptr, deltas_size - 1);
+            break;
+        case treeNode::INTEGER:
+            temp = new Control(Control::INTEGER, node->nodeString);
+            break;
+        case treeNode::MULTIPLY:
+            temp = new Control(Control::MULTIPLY, node->nodeString);
+            break;
+        case treeNode::ADD:
+            temp = new Control(Control::ADD, node->nodeString);
+            break;
+        case treeNode::SUBTRACT:
+            temp = new Control(Control::SUBTRACT, node->nodeString);
+            break;
+        case treeNode::DIVIDE:
+            temp = new Control(Control::DIVIDE, node->nodeString);
+            break;
+        case treeNode::GAMMA:
+            temp = new Control(Control::GAMMA, node->nodeString);
+            break;
+        case treeNode::IDENTIFIER:
+            temp = new Control(node->nodeString, Control::NAME);
+            break;
+        case treeNode::STRING:
+            temp = new Control(Control::STRING, node->nodeString.substr(1, node->nodeString.length() - 2));
+            break;
+        case treeNode::TAU:
+            if (variables != NULL)
+                tau_count = variables->size();
+            temp = new Control(Control::TAU, tau_count, false);
+            break;
+        case treeNode::AUG:
+            temp = new Control(Control::AUG);
+            break;
+        case treeNode::NIL:
+            temp = new Control(Control::NIL);
+            break;
+        case treeNode::YSTAR:
+            temp = new Control(Control::YSTAR);
+            break;
+        case treeNode::AND_LOGICAL:
+            temp = new Control(Control::AND_LOGICAL);
+            break;
+        case treeNode::OR:
+            temp = new Control(Control::OR);
+            break;
+        case treeNode::NE:
+            temp = new Control(Control::NE);
+            break;
+        case treeNode::EQ:
+            temp = new Control(Control::EQ);
+            break;
+        case treeNode::LS:
+            temp = new Control(Control::LS);
+            break;
+        case treeNode::LE:
+            temp = new Control(Control::LE);
+            break;
+        case treeNode::GR:
+            temp = new Control(Control::GR);
+            break;
+        case treeNode::GE:
+            temp = new Control(Control::GE);
+            break;
+        case treeNode::NEG:
+            temp = new Control(Control::NEG);
+            break;
+        case treeNode::FALSE:
+            temp = new Control(Control::FALSE);
+            break;
+        case treeNode::TRUE:
+            temp = new Control(Control::TRUE);
+            break;
+        case treeNode::NOT:
+            temp = new Control(Control::NOT);
+            break;
+        case treeNode::DUMMY:
+            temp = new Control(Control::DUMMY);
+            break;
+    };
+    ctrlStruct->push_back(temp);
 }
+
 
 

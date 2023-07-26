@@ -22,9 +22,12 @@ class token {
 
 public:
 	token();
-	int tokType;
-	std::string tokValue;
-	int lineCount, charCount;
+	// type
+	int type;
+	// value
+	std::string value;
+	//numOfLines numOfCharacters 
+	 int numOfLines, numOfCharacters;
 };
 
 #endif 
