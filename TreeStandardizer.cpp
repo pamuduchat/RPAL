@@ -6,8 +6,6 @@ TreeStandardizer::TreeStandardizer(treeNode* topNode) {
 
 void TreeStandardizer::standardizeLET(treeNode* topNode){
     treeNode* p;
-
-    
     topNode->type = treeNode::GAMMA;
     topNode->nodeString = "gamma";
     topNode->childNode->type = treeNode::LAMBDA;
@@ -48,8 +46,8 @@ void TreeStandardizer::standardizeWITHIN(treeNode* topNode){
     x2->siblingNode->childNode = new treeNode();
     x2->siblingNode->childNode->type = treeNode::LAMBDA;
     x2->siblingNode->childNode->nodeString = "lambda";
-    x2->siblingNode->childNode->siblingNode = e1; // the new lambda's right
-    x2->siblingNode->childNode->childNode = x1; // the new lambda's left has now x1 who's first sibling is e2
+    x2->siblingNode->childNode->siblingNode = e1; 
+    x2->siblingNode->childNode->childNode = x1; // th
     topNode->childNode = x2;
 
 }
