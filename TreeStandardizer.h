@@ -20,7 +20,6 @@ class TreeStandardizer {
 
 public:
     TreeStandardizer(treeNode* topNode);
-    virtual ~TreeStandardizer();
 };
 
 #endif /* TREESTANDARDIZER_H_ */

@@ -1,29 +1,13 @@
-/*
- * TreeStandardizer.cpp
- *
- *  Created on: Apr 20, 2016
- *      Author: sachin
- */
-
 #include "TreeStandardizer.h"
 
 TreeStandardizer::TreeStandardizer(treeNode* topNode) {
-    // TODO Auto-generated constructor stub
     standardize(topNode);
-}
-
-TreeStandardizer::~TreeStandardizer() {
-    // TODO Auto-generated destructor stub
 }
 
 void TreeStandardizer::standardizeLET(treeNode* topNode){
     treeNode* p;
-    if (STANDARDIZERLOGS) printf ("CASE LET\n");
 
-    if(treeNode::BINDING != topNode->childNode->type){
-        printf ("Subtree not standardised: case LET");
-    }
-
+    
     topNode->type = treeNode::GAMMA;
     topNode->nodeString = "gamma";
     topNode->childNode->type = treeNode::LAMBDA;
@@ -36,17 +20,13 @@ void TreeStandardizer::standardizeLET(treeNode* topNode){
 
 void TreeStandardizer::standardizeWHERE(treeNode* topNode){
     treeNode* p, *x, *e;
-    if (STANDARDIZERLOGS) printf ("CASE WHERE\n");
-    if(treeNode::BINDING != topNode->childNode->siblingNode->type){
-      printf("Subtree not standardised: case WHERE");
-    };
     topNode->type = treeNode::GAMMA;
     topNode->nodeString = "gamma";
     p = topNode->childNode;
-    x = topNode->childNode->siblingNode->childNode;
     e = topNode->childNode->siblingNode->childNode->siblingNode;
-    p->siblingNode = NULL;
+    x = topNode->childNode->siblingNode->childNode;
     x->siblingNode = NULL;
+    p->siblingNode = NULL;
     topNode->childNode = new treeNode();
     topNode->childNode->type = treeNode::LAMBDA;
     topNode->childNode->nodeString = "lambda";
@@ -57,10 +37,6 @@ void TreeStandardizer::standardizeWHERE(treeNode* topNode){
 
 void TreeStandardizer::standardizeWITHIN(treeNode* topNode){
     treeNode *x1, *x2, *e1;
-    if (STANDARDIZERLOGS) printf ("CASE WITHIN\n");
-    if(treeNode::BINDING != topNode->childNode->type || treeNode::BINDING != topNode->childNode->siblingNode->type){
-        printf("Subtree not standardised: case WITHIN");
-    };
     topNode->type = treeNode::BINDING;
     x1 = topNode->childNode->childNode;
     x2 = topNode->childNode->siblingNode->childNode;

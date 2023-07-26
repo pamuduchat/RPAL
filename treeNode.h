@@ -1,18 +1,8 @@
-/*
- * treeNode.h
- *
- *  Created on: Apr 20, 2016
- *      Author: sachin
- */
-
-#ifndef RPAL_COMPILER_TREENODE_H_
-#define RPAL_COMPILER_TREENODE_H_
+#ifndef RPAL_COMPILER_TREENODE_HEADER
+#define RPAL_COMPILER_TREENODE_HEADER
 #include "lexer.h"
 #include <stack>
-
-
 class treeNode{
-
 public:
     enum Type {
         LAMBDA = 1 ,
@@ -62,5 +52,4 @@ public:
 
 };
 
-
-#endif /* RPAL_COMPILER_TREENODE_H_ */
+#endif
