@@ -16,6 +16,18 @@ bool lexer::isPunction(char c){
     return false;
 }
 
+// bool lexer::isOperatorSymbol(char target){
+// 	char arr[] = {'+', '-', '*', '<', '>', '*', '&', '.', '@', '/', ':', '=', '~', '|', '$', '!', '"', '`', '?'};
+//    
+ 
+//     int n = 19;
+ 
+//     bool exists = std::find(arr, arr + n, target) != arr + n;
+
+// 	   return exists;
+
+// }
+
 bool lexer::isOperatorSymbol(char c){
 	 if ('+' == c || '-' == c || '*' == c || '<' == c || '>' == c || '*' == c || '&' == c || '.' == c
 	    || '@' == c|| '/' == c|| ':'== c || '=' == c|| '~' == c|| '|'== c || '$'== c || '!' == c

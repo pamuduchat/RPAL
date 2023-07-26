@@ -47,76 +47,68 @@ void TreeStandardizer::standardizeWITHIN(treeNode* topNode){
     x2->siblingNode->childNode->type = treeNode::LAMBDA;
     x2->siblingNode->childNode->nodeString = "lambda";
     x2->siblingNode->childNode->siblingNode = e1; 
-    x2->siblingNode->childNode->childNode = x1; // th
+    x2->siblingNode->childNode->childNode = x1; 
     topNode->childNode = x2;
 
 }
 
 void TreeStandardizer::standardizeREC(treeNode* topNode){
-    treeNode *x, *e, *temp;
-    if (STANDARDIZERLOGS) printf ("CASE REC\n");
-    if(treeNode::BINDING != topNode->childNode->type){
-        printf("Subtree not standardised: case REC");
-    };
+    treeNode *x, *e, *tempNode;
     topNode->type = treeNode::BINDING;
     x = topNode->childNode->childNode;
     e = topNode->childNode->childNode->siblingNode;
     x->siblingNode = NULL;
-    topNode->childNode = x; //removing the reference to the old = node
-    temp = new treeNode();
-    temp->type = treeNode::GAMMA;
-    temp->nodeString = "gamma";
-    x->siblingNode = temp;
-    temp->childNode = new treeNode();
-    temp->childNode->type = treeNode::YSTAR;
-    temp->childNode->nodeString = "<Y*>";
-    temp->childNode->siblingNode = new treeNode();
-    temp->childNode->siblingNode->type = treeNode::LAMBDA;
-    temp->childNode->siblingNode->nodeString = "lambda";
-    temp->childNode->siblingNode->childNode = new treeNode();
-    temp->childNode->siblingNode->childNode->type = x->type;
-    temp->childNode->siblingNode->childNode->nodeString = x->nodeString;
-    temp->childNode->siblingNode->childNode->siblingNode = e;
+    topNode->childNode = x; 
+    tempNode = new treeNode();
+    tempNode->type = treeNode::GAMMA;
+    tempNode->nodeString = "gamma";
+    x->siblingNode = tempNode;
+    tempNode->childNode = new treeNode();
+    tempNode->childNode->type = treeNode::YSTAR;
+    tempNode->childNode->nodeString = "<Y*>";
+    tempNode->childNode->siblingNode = new treeNode();
+    tempNode->childNode->siblingNode->type = treeNode::LAMBDA;
+    tempNode->childNode->siblingNode->nodeString = "lambda";
+    tempNode->childNode->siblingNode->childNode = new treeNode();
+    tempNode->childNode->siblingNode->childNode->type = x->type;
+    tempNode->childNode->siblingNode->childNode->nodeString = x->nodeString;
+    tempNode->childNode->siblingNode->childNode->siblingNode = e;
 }
 
 void TreeStandardizer::standardizeFCNFORM(treeNode* topNode){
-    treeNode *temp, *newNode;
-    if (STANDARDIZERLOGS) printf ("CASE FCN_FORM\n");
+    treeNode *tempNode, *newNode;
     topNode->type = treeNode::BINDING;
     topNode->nodeString = "=";
-    temp = topNode->childNode;
-    while (temp->siblingNode->siblingNode != NULL){
+    tempNode = topNode->childNode;
+    while (tempNode->siblingNode->siblingNode != NULL){
         newNode = new treeNode();
-        if (STANDARDIZERLOGS) printf ("newNOde allocated at %p\n", newNode);
         newNode->type = treeNode::LAMBDA;
         newNode->nodeString = "lambda";
-        newNode->childNode = temp->siblingNode;
-        temp->siblingNode = newNode;
-        temp = newNode->childNode;
+        newNode->childNode = tempNode->siblingNode;
+        tempNode->siblingNode = newNode;
+        tempNode = newNode->childNode;
     }
 }
 
 void TreeStandardizer::standardizeLAMBDA(treeNode* topNode){
-    treeNode *temp, *newNode;
-    if (STANDARDIZERLOGS) printf ("CASE LAMBDA\n");
-    temp = topNode->childNode;
-    while (temp->siblingNode->siblingNode != NULL){
+    treeNode *tempNode, *newNode;
+    tempNode = topNode->childNode;
+    while (tempNode->siblingNode->siblingNode != NULL){
         newNode = new treeNode();
         newNode->type = treeNode::LAMBDA;
         newNode->nodeString = "lambda";
-        newNode->childNode = temp->siblingNode;
-        temp->siblingNode = newNode;
-        temp = temp->siblingNode;
+        newNode->childNode = tempNode->siblingNode;
+        tempNode->siblingNode = newNode;
+        tempNode = tempNode->siblingNode;
     }
 }
 
 void TreeStandardizer::standardizeAND(treeNode* topNode){
-    treeNode* temp;
-    treeNode* tauNode, *commaNode, **currentTau, **currentComma;
-    if (STANDARDIZERLOGS) printf ("CASE AND\n");
+    treeNode* tempNode;
+    treeNode* tauNode, *commaNode, **currTauChild, **currCommaChild;
     topNode->type = treeNode::BINDING;
     topNode->nodeString = "=";
-    temp = topNode->childNode;
+    tempNode = topNode->childNode;
     tauNode = new treeNode();
     commaNode = new treeNode();
     tauNode->type = treeNode::TAU;
@@ -129,22 +121,21 @@ void TreeStandardizer::standardizeAND(treeNode* topNode){
     commaNode->siblingNode = NULL;
     topNode->childNode = commaNode;
     topNode->childNode->siblingNode = tauNode;
-    currentTau = &(tauNode->childNode);
-    currentComma = &(commaNode->childNode);
-    while (temp != NULL){
-        *currentTau = temp->childNode->siblingNode;
-        temp->childNode->siblingNode = NULL;
-        *currentComma = temp->childNode;
-        temp = temp->siblingNode;
-        currentComma = &((*currentComma)->siblingNode); // Can your code BE any more UGLY?
-        currentTau = &((*currentTau)->siblingNode);
+    currTauChild = &(tauNode->childNode);
+    currCommaChild = &(commaNode->childNode);
+    while (tempNode != NULL){
+        *currTauChild = tempNode->childNode->siblingNode;
+        tempNode->childNode->siblingNode = NULL;
+        *currCommaChild = tempNode->childNode;
+        tempNode = tempNode->siblingNode;
+        currCommaChild = &((*currCommaChild)->siblingNode); 
+        currTauChild = &((*currTauChild)->siblingNode);
     }
 
 }
 
 void TreeStandardizer::standardizeAT(treeNode* topNode){
     treeNode* E1, *N, *E2;
-    if (STANDARDIZERLOGS) printf ("CASE AT\n");
     E1 = topNode->childNode;
     N = E1->siblingNode;
     E2 = N->siblingNode;
@@ -161,11 +152,9 @@ void TreeStandardizer::standardizeAT(treeNode* topNode){
 
 }
 
-//It doesn't get uglier than this
 void TreeStandardizer::standardize(treeNode* topNode){
-    treeNode *p, *e, *e1, *e2, *x, *x1, *x2, *n, *temp, *new_temp;
-    string origString = topNode->nodeString;
-    if (STANDARDIZERLOGS) printf ("Standardizing Node = %s\n", topNode->nodeString.c_str());
+    treeNode *p, *e, *e1, *e2, *x, *x1, *x2, *n, *tempNode;
+    string original = topNode->nodeString;
     if (topNode->childNode != NULL)
         standardize(topNode->childNode);
     if (topNode->siblingNode != NULL)
@@ -200,7 +189,7 @@ void TreeStandardizer::standardize(treeNode* topNode){
         standardizeAT(topNode);
         break;
     default:
-        if (0) printf ("Nothing to do. TopNode is %s\n", origString.c_str());
+        if (0) printf ("Nothing to do. TopNode is %s\n", original.c_str());
     }
-    if (0) printf ("Done with node %s\n", origString.c_str());
+    if (0) printf ("Done with node %s\n", original.c_str());
 }
