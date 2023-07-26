@@ -12,7 +12,7 @@ CSEMachine::CSEMachine(){
     rootDeltaControl = new Control(Control::DELTA, controlStructures->size());
 }
 
-bool CSEMachine::checkInbuilt(string func) {
+bool CSEMachine::isInbuiltFunction(string func) {
     if (std::find(inbuiltFunctions.begin(), inbuiltFunctions.end(), func) != inbuiltFunctions.end()){
         return true;
     } else {
@@ -216,7 +216,7 @@ void CSEMachine::executeBinaryOperation(int type){
 
 
 
-void CSEMachine::escapePrintStr(string string){
+void CSEMachine::escapeAndPrintString(string string){
   for( int i = 0 ; i < string.length() ; i++ ){
   char character1 = string.at(i) ;
     if( character1 == '\\'){
@@ -249,7 +249,7 @@ void CSEMachine::executeOperator(Control* rator) {
     };
     if (rator->variables.front() == "Print") {
         string print_str = execStack.top()->toStr();
-        escapePrintStr(print_str);
+        escapeAndPrintString(print_str);
         execStack.pop();
         toPush = new Control(Control::DUMMY);
     } else if (rator->variables.front() == "Order") {
@@ -344,7 +344,7 @@ void CSEMachine::executeOperator(Control* rator) {
 
 
 void CSEMachine::handleName(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
-    if(checkInbuilt(currentControl->variables.front())){
+    if(isInbuiltFunction(currentControl->variables.front())){
         control.pop_back();
         execStack.push(currentControl) ;
     } else {
@@ -356,7 +356,7 @@ void CSEMachine::handleName(Control* temp, Control* currentControl, Control* rat
     }
 }
 
-void CSEMachine::rule11(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+void CSEMachine::applyRule11(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
 newEnvironment = createNewEnvironment();
 newEnvironment->assignParent(environmentMap[rator->associatedENV]);
 currentEnvironment = newEnvironment;
@@ -390,14 +390,14 @@ for (int i = 0; i < controlStructures->at(rator->index)->ctrlStruct->size(); i++
 
 }
 
-void CSEMachine::rule12(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+void CSEMachine::applyRule12(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     Control *eta = new Control(execStack.top()) ;
     execStack.pop();
     eta->type = Control::ETA;
     execStack.push(eta);
 }
 
-void CSEMachine::rule13(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+void CSEMachine::applyRule13(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     control.push_back(new Control(Control::GAMMA));
     control.push_back(new Control(Control::GAMMA));
     execStack.push(rator);
@@ -405,7 +405,7 @@ void CSEMachine::rule13(Control* temp, Control* currentControl, Control* rator, 
     lambda->associatedENV = rator->associatedENV;
     execStack.push(lambda);
 }
-void CSEMachine::rule10(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
+void CSEMachine::applyRule10(Control* temp, Control* currentControl, Control* rator, Environment* newEnvironment, int deltaIndex){
     if (execStack.top()->type == Control::INTEGER) {
     int index = atoi(execStack.top()->ctrlVal.c_str()) - 1;
     execStack.pop();
@@ -428,16 +428,16 @@ execStack.pop();
 
 switch (rator->type) {
     case Control::LAMBDA:
-        rule11(temp, currentControl, rator, newEnvironment, deltaIndex);
+        applyRule11(temp, currentControl, rator, newEnvironment, deltaIndex);
         break;
     case Control::YSTAR:
-        rule12(temp, currentControl, rator, newEnvironment, deltaIndex);
+        applyRule12(temp, currentControl, rator, newEnvironment, deltaIndex);
         break;
     case Control::ETA:
-        rule13(temp, currentControl, rator, newEnvironment, deltaIndex);
+        applyRule13(temp, currentControl, rator, newEnvironment, deltaIndex);
         break;
     case Control::TUPLE:
-        rule10(temp, currentControl, rator, newEnvironment, deltaIndex);
+        applyRule10(temp, currentControl, rator, newEnvironment, deltaIndex);
         break;
     default:
         executeOperator(rator);
@@ -662,25 +662,31 @@ void CSEMachine::flattenDeltaElse(treeNode* deltaElseNode, Control* deltaControl
 }
 
 
-
+// Flatten the "then" branch of the ternary expression and add to delta control structures. and Flatten the "else" branch of the ternary expression and add to delta control structures.
 void CSEMachine::flatternTernaryExpression(treeNode* ternaryNode, Control* deltaControl, vector<Control*>* controlStructures) {
     flattenDeltaThen(ternaryNode, deltaControl, controlStructures);
     flattenDeltaElse(ternaryNode, deltaControl, controlStructures);
-
+    // Create a new BETA control.
     Control* betaControl = new Control(Control::BETA);
+
+    // Add the BETA control to the delta control structure with a label "beta".
     deltaControl->ctrlStruct->push_back(new Control(Control::BETA, "beta"));
+
+    // Add the condition (child node) of the ternary expression to the delta control structure.
     deltaControl->addControl(ternaryNode->childNode, ternaryNode->childNode->type, ternaryNode->childNode->nodeString, NULL, NULL, controlStructures->size());
 
+    // Process the child nodes of the condition (if any) within the ternary expression.
     if (ternaryNode->childNode->childNode != NULL) {
         flatternControlStructure(ternaryNode->childNode->childNode, deltaControl, controlStructures);
     }
 }
 
 
+// Flattens a LAMBDA expression, handles variables, and adds it to the control structures.
 void CSEMachine::flatternLambdaExpression(treeNode* lambdaNode, Control* deltaControl, vector<Control*>* controlStructures) {
     Control* tempControl = NULL;
     vector<string>* lambdaVariables = new vector<string>();
-
+     // Check if the lambdaNode child is a COMMA (multiple parameter lambda).
     if (treeNode::IDENTIFIER == lambdaNode->childNode->type) {
         lambdaVariables->push_back(lambdaNode->childNode->nodeString);
     } else if (treeNode::COMMA == lambdaNode->childNode->type) {
@@ -688,7 +694,7 @@ void CSEMachine::flatternLambdaExpression(treeNode* lambdaNode, Control* deltaCo
             lambdaVariables->push_back(tempNode->nodeString);
         }
     }
-
+  // Create a new DELTA control for the lambda expression.
     tempControl = new Control(Control::DELTA, controlStructures->size());
     controlStructures->push_back(tempControl);
     deltaControl->addControl(lambdaNode, lambdaNode->type, lambdaNode->nodeString, lambdaVariables, tempControl, controlStructures->size());
@@ -699,13 +705,12 @@ void CSEMachine::flatternLambdaExpression(treeNode* lambdaNode, Control* deltaCo
         flatternControlStructure(lambdaNode->siblingNode, deltaControl, controlStructures);
 }
 
+
+// Recursively flattens syntax tree into control structures, handling LAMBDA and TERNARY expressions.
 void CSEMachine::flatternControlStructure(treeNode* currentNode, Control* deltaControl, vector<Control*>* controlStructures) {
     Control* tempControlPtr = NULL;
     vector<string>* variables = NULL;
-
-    // Check if the current node is a LAMBDA expression.
     if (treeNode::LAMBDA == currentNode->type) {
-        // Flatten the LAMBDA expression and add it to the control structure.
         flatternLambdaExpression(currentNode, deltaControl, controlStructures);
     }
     // Check if the current node is a TERNARY expression.
@@ -725,11 +730,7 @@ void CSEMachine::flatternControlStructure(treeNode* currentNode, Control* deltaC
                 variables->push_back(tempNode->nodeString);
             }
         }
-
-        // Add the current node to the delta control and the control structure.
         deltaControl->addControl(currentNode, currentNode->type, currentNode->nodeString, variables, tempControlPtr, controlStructures->size());
-
-        // process the child nodes and sibling nodes.
         if (NULL != currentNode->childNode) {
             flatternControlStructure(currentNode->childNode, deltaControl, controlStructures);
         }

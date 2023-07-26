@@ -1,6 +1,6 @@
 #ifndef PARSER_HEADER
 #define PARSER_HEADER
-#include "lexer.h"
+#include "lexicalanalyzer.h"
 #include <stack>
 #include "TreeStandardizer.h"
 #include "CSEMachine.h"

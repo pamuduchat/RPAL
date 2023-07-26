@@ -1,7 +1,7 @@
 #ifndef TREESTANDARDIZER_HEADER
 #define TREESTANDARDIZER_HEADER
 
-#include "lexer.h"
+#include "lexicalanalyzer.h"
 #include "treeNode.h"
 
 using namespace std;

@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "lexicalanalyzer.h"
 #include "treeNode.h"
 
 #include <string>

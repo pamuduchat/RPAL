@@ -22,11 +22,8 @@ class token {
 
 public:
 	token();
-	// type
 	int type;
-	// value
-	std::string value;
-	//numOfLines numOfCharacters 
+	std::string value; 
 	 int numOfLines, numOfCharacters;
 };
 

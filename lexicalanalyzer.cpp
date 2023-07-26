@@ -1,5 +1,5 @@
 
-#include "lexer.h"
+#include "lexicalanalyzer.h"
 #include <algorithm>
 
 using namespace std;

@@ -35,12 +35,12 @@ class CSEMachine {
     void initializaCseMachine(treeNode*);
     void executeBinaryOperation(int);
     void executeOperator(Control*);
-    bool checkInbuilt(string);
-    void escapePrintStr(string);
-    void rule11(Control*, Control*, Control*, Environment*, int);
-    void rule12(Control*, Control*, Control*, Environment*, int);
-    void rule13(Control*, Control*, Control*, Environment*, int);
-    void rule10(Control*, Control*, Control*, Environment*, int);
+    bool isInbuiltFunction(string);
+    void escapeAndPrintString(string);
+    void applyRule11(Control*, Control*, Control*, Environment*, int);
+    void applyRule12(Control*, Control*, Control*, Environment*, int);
+    void applyRule13(Control*, Control*, Control*, Environment*, int);
+    void applyRule10(Control*, Control*, Control*, Environment*, int);
     void handleNeg(Control*, Control*, Control*, Environment*, int);
     void handleEnvironment(Control*, Control*, Control*, Environment*, int);
     void handleTau(Control*, Control*, Control*, Environment*, int);

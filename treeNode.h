@@ -1,6 +1,6 @@
 #ifndef RPAL_COMPILER_TREENODE_HEADER
 #define RPAL_COMPILER_TREENODE_HEADER
-#include "lexer.h"
+#include "lexicalanalyzer.h"
 #include <stack>
 class treeNode{
 public:

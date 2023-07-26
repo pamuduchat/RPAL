@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "lexer.h"
+#include "lexicalanalyzer.h"
 #include "parser.h"
 
 using namespace std;
